@@ -1,1 +1,1 @@
-# morandalex-decentralized-ehr-for-encode-hackaton-
+# encode hackaton 2022
