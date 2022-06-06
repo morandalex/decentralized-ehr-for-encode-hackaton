@@ -80,9 +80,9 @@ const Layout = ({ children, customMeta }: LayoutProps): JSX.Element => {
           })}
         </Container>
       </main>
-      {/*
+      
  <Footer />
-        */}
+        
 
     </>
   )

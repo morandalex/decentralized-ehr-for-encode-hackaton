@@ -1,10 +1,11 @@
 import { ApolloProvider } from '@apollo/client'
-import { ChakraProvider ,extendTheme} from '@chakra-ui/react'
+import { ChakraProvider, extendTheme } from '@chakra-ui/react'
 import {
   ChainId,
   Config,
   DAppProvider,
-  MULTICALL_ADDRESSES,
+  // MULTICALL_ADDRESSES,
+  Mainnet, Goerli, Kovan, Rinkeby, Ropsten, xDai, Localhost, Hardhat, Mumbai, Polygon
 } from '@usedapp/core'
 import type { AppProps } from 'next/app'
 import React from 'react'
@@ -18,21 +19,21 @@ const config: Config = {
   readOnlyUrls: {
     31337: 'http://localhost:8545',
   },
-  multicallAddresses: {
-    31337: "", 
-    ...MULTICALL_ADDRESSES,
-},
-  supportedChains: [
-    ChainId.Mainnet,
-    ChainId.Goerli,
-    ChainId.Kovan,
-    ChainId.Rinkeby,
-    ChainId.Ropsten,
-    ChainId.xDai,
-    ChainId.Localhost,
-    ChainId.Hardhat,
-    ChainId.Mumbai,
-    ChainId.Polygon
+  /* multicallAddresses: {
+     31337: '0x0000000000000000000000000000000000000000',
+   //  ...MULTICALL_ADDRESSES,
+ },*/
+  networks: [
+    Mainnet,
+    Goerli,
+    Kovan,
+    Rinkeby,
+    Ropsten,
+    xDai,
+    Localhost,
+    Hardhat,
+    Mumbai,
+    Polygon
   ]
 }
 const zIndices = {
@@ -52,23 +53,23 @@ const zIndices = {
     tooltip: 1800,
   },
 }
-const theme = extendTheme({ zIndices})
+const theme = extendTheme({ zIndices })
 
 const MyApp = ({ Component, pageProps }: AppProps): JSX.Element => {
   const apolloClient = useApollo(pageProps)
   return (
-   
+
     <ApolloProvider client={apolloClient}>
-    <DAppProvider config={config} >
-      <ChakraProvider  theme = {theme}>
-        {
-          //@ts-ignore
-        <Component {...pageProps} />
-        }
-      </ChakraProvider>
-    </DAppProvider>
-  </ApolloProvider>
-   
+      <DAppProvider config={config} >
+        <ChakraProvider theme={theme}>
+          {
+            //@ts-ignore
+            <Component {...pageProps} />
+          }
+        </ChakraProvider>
+      </DAppProvider>
+    </ApolloProvider>
+
   )
 }
 

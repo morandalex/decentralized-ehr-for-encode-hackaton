@@ -119,34 +119,56 @@ function SignatureExampleIndex(): JSX.Element {
 
 
 
-    async function writeFun() {
+    async function writeContract(_contractFunName, par) {
 
-        if (chainId == 80001) {
 
+        if (checkChain) {
 
             const signer = library?.getSigner()
-            const c = new ethers.Contract('0x938a5Edb375DDe749616232f7f4F628D6610684c', abi, signer)
+            const c = new ethers.Contract(contractAddress, contractAbi, signer)
             if (signer) {
                 try {
+                    //console.log(par[0], par[1], par[2])
                     setLoading(true)
-                    const oldCond = await c.getFlag()
-                    console.log(oldCond, '->', !oldCond)
-                    const tx = await c.setCondition(!oldCond)
-                    const receipt = await tx.wait();
+                    let tx;
+                    let receipt;
+                    if (par.length == 0) {
+                        
+                        tx = await c[_contractFunName]()
+                        receipt = tx.wait()
+                       
+                    }
+                    if (par.length == 1) {
+                        
+                        tx = await c[_contractFunName](par[0])
+
+                    }
+                    if (par.length == 2) {
+                        
+                        tx = await c[_contractFunName](par[0], par[1])
+
+                    }
+                    if (par.length == 3) {
+                        
+                        tx = await c[_contractFunName](par[0], par[1], par[2])
+
+                    }
+
                     console.log(receipt)
                     setLoading(false)
-                    setCond(!oldCond)
-                    alert(receipt.transactionHash)
+                     
+
                 } catch (e) {
+                    console.log(e)
+                    console.log(e.message)
+
+                } finally {
                     setLoading(false)
-                    alert(e)
                 }
 
             }
-        } else {
-
-            alert('change to mumbai network')
-        }
+        } else { alert('change  network') 
+       }
     }
 
     function handleStr(e) {

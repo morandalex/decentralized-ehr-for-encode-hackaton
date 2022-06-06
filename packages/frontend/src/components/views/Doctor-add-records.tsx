@@ -1,3 +1,11 @@
+import React, {
+  ChangeEvent,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
 import {
   Heading,
   HStack,
@@ -20,66 +28,44 @@ import {
   ModalBody,
   ModalCloseButton,
 } from "@chakra-ui/react";
-import { supportedNetworks } from "../../contexts/Web3Provider";
-import { switchToNetwork } from "../../core/connectors";
-
-import React, {
-  ChangeEvent,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { Web3Context } from "../../contexts/Web3Provider";
-import NETWORKS from "../../core/networks";
-//import { ElectronicHealthLink } from "@scaffold-eth/hardhat-ts/generated/contract-types/ElectronicHealthLink";
-//import ABIS from "@scaffold-eth/hardhat-ts/hardhat_contracts.json";
-//@ts-ignore
-import ABIS from "../../hardhat_contracts.json";
-//@ts-ignore
-import { ElectronicHealthLink } from "../../contract-types/ElectronicHealthLink";
-import { useWeb3React } from "@web3-react/core";
-import { hexToString } from "../../core/helpers";
+import TablePaginated from "./TablePaginated";
+import { useEthers } from '@usedapp/core'
+import { ethers, utils } from 'ethers'
 import LitJsSdk from 'lit-js-sdk'
 import { toString as uint8arrayToString } from "uint8arrays/to-string";
 import { fromString as uint8arrayFromString } from "uint8arrays/from-string";
 import { useRouter } from 'next/router';
-type Block = {
-  inputs?: Array<Object>;
-  outputs?: Array<Object>;
-  name?: string;
-  stateMutability?: string;
-  type: string;
-};
 
+import { NFTStorage, File, Blob } from '../../../../../node_modules/nft.storage/dist/bundle.esm.min.js'
 
-(async () => {
-
-  const client = new LitJsSdk.LitNodeClient()
-  await client.connect()
-  //@ts-ignore
-  window.litNodeClient = client
-
-})()
-import { NFTStorage, File, Blob } from 'nft.storage'
 
 const NFT_STORAGE_TOKEN = process.env.NEXT_PUBLIC_NFTSTORAGE_TOKEN
 //@ts-ignore
 const clientipfsnftstorage = new NFTStorage({ token: NFT_STORAGE_TOKEN })
 
-function ContractFields({ ...others }: any) {
-  const { contracts } = useContext(Web3Context);
-  const { account } = useContext(Web3Context);
-  const { library } = useWeb3React();
-  const { chainId } = useWeb3React();
-  const [abi, setAbi] = useState([]);
 
-  const [yourReadContract, setYourReadContract] =
-    useState<ElectronicHealthLink>();
-  const [yourWriteContract, setYourWriteContract] =
-    useState<ElectronicHealthLink>();
+import ABIs from '../../lib/hardhat_contracts.json'
+import { CID } from "nft.storage/dist/src/lib/interface";
+const networks = {
+  "31337": "localhost",
+  "80001": "mumbai",
+  "137": "polygon"
+}
+
+export default function DoctorAdd() {
+
+
+  const [accessCheck, setAccessCheck] = useState(false);
+  const [selectedDocType, setSelectedDocType] = useState("1");
+  const [doctorAddressInput, setDoctorAddressInput] = useState("");
+  const [startingTime, setStartingTime] = useState("0");
+  const [endingTime, setEndingTime] = useState("999999999");
+  const [selectedType, setSelectedType] = useState('1');
+  const [docs, setDocs] = useState<any>([]);
   const [yourBalance, setYourBalance] = useState("");
-  const [selectedType, setSelectedType] = useState("1");
+  const [litSelectedChain, setLitSelectedChain] = useState('');
+
+
   const [patientAddressInput, setPatientAddressInput] = useState("");
   const [docString, setDocString] = useState("");
   const [fileExtension, setFileExtension] = useState("");
@@ -87,95 +73,198 @@ function ContractFields({ ...others }: any) {
   const [encryptedSymmetricKey, setEncryptedSymmetricKey] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [toggle, setToggle] = useState(false);
-  const [contractAddress, setContractAddress] = useState("");
+
   const [encrypted, setEncrypted] = useState('');
-  const [litSelectedChain, setLitSelectedChain] = useState('');
+
+
+  const { library, chainId, account } = useEthers();
   const router = useRouter()
-  const getEthBalance = async () => {
-    if (library && account) {
-      const res = await library?.getBalance(account);
-      const balance = hexToString(res);
-      setYourBalance(balance);
-      // console.log(`balance`, balance);
-    }
-  };
+
+  const [cond, setCond] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [chain, setChain] = useState('mumbai')
+  const [strEncrypted, setStrEncrypted] = useState('')
+  const [contractAddress, setContractAddress] = useState('0x938a5Edb375DDe749616232f7f4F628D6610684c')
+  const [strToBeEncrypt, setStrToBeEncrypt] = useState('This string will be encrypted by lit protocol')
+  const [symEncrypted, setSymEncrypted] = useState('')
+  const [contractAbi, setContractAbi] = useState([])
 
 
   useEffect(() => {
-    if (chainId && contracts) {
-      const strChainId = chainId.toString() as keyof typeof NETWORKS;
-      const network = NETWORKS[strChainId];
-      const abis = ABIS as Record<string, any>;
-      if (abis[strChainId]) {
-        console.log(abis);
-        const abi =
-          abis[strChainId][network.name].contracts.ElectronicHealthLink.abi;
-        const contract =
-          abis[strChainId][network.name].contracts.ElectronicHealthLink.address;
-        setAbi(abi);
-        setContractAddress(contract);
-        setYourReadContract(contracts.yourReadContract);
-        setYourWriteContract(contracts.yourWriteContract);
 
-      }
-      if (chainId == 80001) {
-        setLitSelectedChain('mumbai')
-      }
-      if (chainId == 4) {
-        setLitSelectedChain('rinkeby')
-      }
-      if (chainId == 10) {
-        setLitSelectedChain('optimism')
-      }
+    async function init() {
+      //INIT LIT CLIENT
+      const client = new LitJsSdk.LitNodeClient()
+      await client.connect()
+      //@ts-ignore
+      window.litNodeClient = client
     }
-  }, [chainId, contracts]);
+
+    init()
+    setLitSelectedChain(networks[chainId])
+
+  }, [])
+
 
   useEffect(() => {
 
-    if (chainId == 80001) {
-      setLitSelectedChain('mumbai')
+
+    function initContract() {
+
+
+      const abi = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].abi
+      const address = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].address
+
+      setContractAbi(abi)
+      setContractAddress(address)
+      console.log(contractAbi)
+      console.log(contractAddress)
+
+
     }
-    if (chainId == 4) {
-      setLitSelectedChain('rinkeby')
-    }
-    if (chainId == 10) {
-      setLitSelectedChain('optimism')
+    if (chainId) {
+      initContract()
+      setLitSelectedChain(networks[chainId])
     }
 
 
-  }, [chainId]);
+  }, [chainId])
 
-  useEffect(() => {
-    getEthBalance();
-  }, [account, library]);
+  const checkChain = () => {
 
-  async function handleSwitchNetworkAfterEncryption(id: number) {
-    switchToNetwork({ library: library, chainId: id });
-    onClose();
-    toggleFun();
+    if (chainId == 80001 || chainId == 31337 || chainId == 137) {
+      return true
+    }
+    else {
+      return false
+    }
+
   }
 
-  function toggleFun() {
-    setToggle(!toggle);
+
+  async function readContract(_contractFunName, par) {
+
+
+    if (checkChain) {
+
+      const signer = library?.getSigner()
+      //@ts-ignore
+      const c = new ethers.Contract(contractAddress, contractAbi, signer)
+      if (signer) {
+        try {
+          //console.log(par[0], par[1], par[2])
+          let res;
+          if (par.length == 0) {
+            res = await c[_contractFunName]()
+          }
+          if (par.length == 1) {
+            res = await c[_contractFunName](par[0])
+          }
+          if (par.length == 2) {
+            res = await c[_contractFunName](par[0], par[1])
+          }
+          if (par.length == 3) {
+            res = await c[_contractFunName](par[0], par[1], par[2])
+          }
+          if (par.length == 4) {
+            res = await c[_contractFunName](par[0], par[1], par[2], par[4])
+          }
+
+
+          alert(res)
+          return res
+
+        } catch (e: any) {
+          if (e.data) {
+            alert(e.message + "\n" + e.data.message);
+          } else {
+            alert(e.message);
+          }
+        }
+
+
+      }
+    } else {
+      alert('connect or change  network')
+    }
   }
-  async function nftStorage() {
-    const blob = new Blob([encrypted])
-    const metadata = await clientipfsnftstorage.storeBlob(blob)
-    console.log(metadata)
-
-    await setIpfsHash(metadata)
-    //await pushDocumentFun()
 
 
+  async function writeContract(_contractFunName, par) {
+
+
+    if (checkChain) {
+
+      const signer = library?.getSigner()
+      //@ts-ignore
+      const c = new ethers.Contract(contractAddress, contractAbi, signer)
+      if (signer) {
+        try {
+          //console.log(par[0], par[1], par[2])
+          setLoading(true)
+          let tx;
+          let receipt;
+          if (par.length == 0) {
+
+            tx = await c[_contractFunName]()
+            receipt = tx.wait()
+
+          }
+          if (par.length == 1) {
+
+            tx = await c[_contractFunName](par[0])
+
+          }
+          if (par.length == 2) {
+
+            tx = await c[_contractFunName](par[0], par[1])
+
+          }
+          if (par.length == 3) {
+
+            tx = await c[_contractFunName](par[0], par[1], par[2])
+
+          }
+          if (par.length == 4) {
+
+            tx = await c[_contractFunName](par[0], par[1], par[2], par[3])
+
+          }
+          if (par.length == 5) {
+
+            tx = await c[_contractFunName](par[0], par[1], par[2], par[3], par[4])
+
+          }
+
+          console.log(receipt)
+          setLoading(false)
+
+
+        } catch (e: any) {
+          if (e.data) {
+            alert(e.message + "\n" + e.data.message);
+          } else {
+            alert(e.message);
+          }
+
+        } finally {
+          setLoading(false)
+        }
+
+      }
+    } else {
+      alert('change  network')
+    }
   }
+
   const encrypt = async () => {
 
 
 
-console.log('litSelectedChain', litSelectedChain)
-const chain = litSelectedChain;
+    console.log('litSelectedChain', litSelectedChain)
+    const chain = litSelectedChain;
 
-    const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: chain})
+    const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: chain })
 
 
     const { encryptedString, symmetricKey } = await LitJsSdk.encryptString(
@@ -187,7 +276,7 @@ const chain = litSelectedChain;
       "base64"
     );
 
-   // console.log('encryptedStringBase64----|||||||||', encryptedStringBase64)
+    // console.log('encryptedStringBase64----|||||||||', encryptedStringBase64)
     const evmContractConditions =
       [
         {
@@ -232,40 +321,56 @@ const chain = litSelectedChain;
         },
       ];
 
-//@ts-ignore
+    //@ts-ignore
     const encSymmetricKey = await window.litNodeClient.saveEncryptionKey({
       evmContractConditions,
       symmetricKey,
       authSig,
-     chain,
+      chain,
     });
     console.log(encSymmetricKey)
     const encSymmetricStringBase64 = uint8arrayToString(
       encSymmetricKey,
       "base64"
     );
-  //  console.log('encSymmetricStringBase64', encSymmetricStringBase64)
+    console.log('encSymmetricStringBase64', encSymmetricStringBase64)
 
 
     await setEncryptedSymmetricKey(encSymmetricStringBase64)
     await setEncrypted(encryptedStringBase64)
 
-   // console.log(evmContractConditions)
-    const blobToIpfs = new Blob([encryptedStringBase64])
-    const metadata = await clientipfsnftstorage.storeBlob(blobToIpfs)
- //   console.log(metadata)
+    // console.log(evmContractConditions)
+
+    var blobToIpfs = new Blob([encryptedStringBase64]/*, {type: 'plain/text'}*/);
+
+
+    let metadata = ''
+
+
+
+    try {
+      metadata = await clientipfsnftstorage.storeBlob(blobToIpfs)
+    }
+    catch (e) { alert(e.message) }
+
+    console.log(metadata)
 
     setIpfsHash(metadata)
     //await pushDocumentFun()
     console.log(JSON.stringify(authSig))
 
-  };
-
-  function get() {
-
-    console.log('encryptedSymmetricKey', encryptedSymmetricKey)
-    console.log('encrypted', encrypted)
   }
+  async function nftStorageFun(str) {
+    var blobToIpfs = new Blob([str]);
+    //   let files = []
+    //  files.push(fileToIpfs)
+
+    //    let metadata = ''
+
+    const metadata = await clientipfsnftstorage.storeBlob(blobToIpfs)
+    console.log(metadata)
+  }
+
 
 
   async function pushDocumentFun() {
@@ -276,27 +381,20 @@ const chain = litSelectedChain;
     console.log("docType: ", selectedType);
     console.log('  encryptedSymmetricKey:', encryptedSymmetricKey)
 
-    if (yourWriteContract && account) {
-      try {
 
-        const result = await yourWriteContract.pushDocument(
-          patientAddressInput,
-          selectedType,
-          ipfsHash,
-          encryptedSymmetricKey,
-          account
-        );
-        console.log(result);
-        toggleFun();
-      } catch (e: any) {
-        if (e.data) {
-          alert(e.message + "\n" + e.data.message);
-        } else {
-          alert(e.message);
-        }
-        toggleFun();
-      }
+    try {
+
+      const result = await writeContract('pushDocument', [
+        patientAddressInput,
+        selectedType,
+        ipfsHash,
+        encryptedSymmetricKey,
+        account])
+
+    } catch (e: any) {
+
     }
+
   }
 
   const handleAddressPatientString = (e: ChangeEvent<HTMLInputElement>) => {
@@ -307,10 +405,11 @@ const chain = litSelectedChain;
     setDocString(e.target.value);
   };
 
-  const handleSelectedType = (e:any) => {
+  const handleSelectedType = (e: any) => {
     e.preventDefault()
     setSelectedType(e.target.value);
   };
+
   function getBase64(file: any) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -328,16 +427,19 @@ const chain = litSelectedChain;
     console.log("extension:" + ext);
     setFileExtension(ext);
     console.log(data);
-    let str :any = await getBase64(data);
+    let str: any = await getBase64(data);
     console.log(str);
     //@ts-ignore
     setDocString(str);
     e.preventDefault();
   };
 
-  function handleBackClick(){
-    router.push('/doctor')
+
+
+  function handleBackClick() {
+    router.push('/')
   }
+
   return (
     <Box
       alignItems="center"
@@ -391,40 +493,18 @@ const chain = litSelectedChain;
         >
           Publish
         </Button>
-
+        {
+          //<Button onClick={()=>{ nftStorageFun('hello world')}}>test nft storage</Button>
+        }
         <Button colorScheme='teal' mt='10px' variant='outline' onClick={handleBackClick}>
-             Back
+          Back
         </Button>
 
       </Box>
 
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Modal Title</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Button
-              onClick={async () => handleSwitchNetworkAfterEncryption(31337)}
-            >
-              {" "}
-              hardhat
-            </Button>
-            <Button onClick={() => { }}> Optimism</Button>
-            <Button onClick={async () => handleSwitchNetworkAfterEncryption(4)}>
-              rinkeby
-            </Button>
-          </ModalBody>
 
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onClose}>
-              Cancel
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
     </Box>
-  );
+  )
+
 }
 
-export default ContractFields;

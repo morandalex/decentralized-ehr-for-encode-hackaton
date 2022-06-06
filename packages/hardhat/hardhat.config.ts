@@ -38,7 +38,13 @@ const getMnemonic = () => {
   }
   return '';
 };
-const { INFURA_KEY  } = process.env;
+const { INFURA_KEY,MUMBAI_DEPLOYER_PRIVATE_KEY  } = process.env;
+let mumbaikey=''
+if(MUMBAI_DEPLOYER_PRIVATE_KEY)
+{
+  mumbaikey=MUMBAI_DEPLOYER_PRIVATE_KEY 
+}
+
 
 if (!INFURA_KEY) {
   throw new Error('No value found for INFURA_KEY in .env');
@@ -106,7 +112,7 @@ const config: HardhatUserConfig = {
     mumbai: {
       url: `https://polygon-mumbai.infura.io/v3/${INFURA_KEY}`,
       gasPrice: 50000000000,
-      accounts: []
+      accounts: [mumbaikey]
     },
     optimism: {
       url: `https://optimism-mainnet.infura.io/v3/${INFURA_KEY}`,

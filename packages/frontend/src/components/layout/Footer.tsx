@@ -88,7 +88,7 @@ export default function Footer() {
                 <Logo color={useColorModeValue('gray.700', 'white')} />
               </Box>
               <Text fontSize={'sm'}>
-                © 2022 HunterDAO. All rights reserved
+                Decentralized Electronic Health Record 
               </Text>
               <Stack direction={'row'} spacing={6}>
                 <SocialButton label={'Twitter'} href={'#'}>

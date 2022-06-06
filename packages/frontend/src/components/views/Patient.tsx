@@ -1,3 +1,11 @@
+import React, {
+  ChangeEvent,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
 import {
   Button,
   Box,
@@ -11,117 +19,210 @@ import {
   FormHelperText,
   Select,
 } from "@chakra-ui/react";
-//import { ElectronicHealthLink } from "@scaffold-eth/hardhat-ts/generated/contract-types/ElectronicHealthLink";
-//import ABIS from "@scaffold-eth/hardhat-ts/hardhat_contracts.json";
-//@ts-ignore
-import ABIS from "../../hardhat_contracts.json";
-//@ts-ignore
-import { ElectronicHealthLink } from "../../contract-types/ElectronicHealthLink";
 import TablePaginated from "./TablePaginated";
-import React, {
-  ChangeEvent,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { Web3Context } from "../../contexts/Web3Provider";
-import NETWORKS from "../../core/networks";
-import { useWeb3React } from "@web3-react/core";
-import { hexToString } from "../../core/helpers";
+import { useEthers } from '@usedapp/core'
+import { ethers, utils } from 'ethers'
 import LitJsSdk from 'lit-js-sdk'
 import { toString as uint8arrayToString } from "uint8arrays/to-string";
 import { fromString as uint8arrayFromString } from "uint8arrays/from-string";
 import { useRouter } from 'next/router';
 
-type Block = {
-  inputs?: Array<Object>;
-  outputs?: Array<Object>;
-  name?: string;
-  stateMutability?: string;
-  type: string;
-};
+import ABIs from '../../lib/hardhat_contracts.json'
+const networks = {
+  "31337": "localhost",
+  "80001": "mumbai",
+  "137": "polygon"
+}
+
+export default function Patient() {
 
 
-(async () => {
-
-  const client = new LitJsSdk.LitNodeClient()
-  await client.connect()
-  //@ts-ignore
-  window.litNodeClient = client
-
-})()
-
-function ContractFields({ ...others }: any) {
-  const { contracts } = useContext(Web3Context);
-  const [data, setdata] = useState([
-    { type: "a1", hash: "b1", col3: "c1" },
-    { type: "a2", hash: "b2", col3: "c2" },
-    { type: "a3", hash: "b3", col3: "c3" },
-  ]);
-
-  const { account } = useContext(Web3Context);
-  const { library } = useWeb3React();
-  const { chainId } = useWeb3React();
-  const [abi, setAbi] = useState([]);
   const [accessCheck, setAccessCheck] = useState(false);
   const [selectedDocType, setSelectedDocType] = useState("1");
-  const [yourReadContract, setYourReadContract] =
-    useState<ElectronicHealthLink>();
-  const [yourWriteContract, setYourWriteContract] =
-    useState<ElectronicHealthLink>();
   const [doctorAddressInput, setDoctorAddressInput] = useState("");
   const [startingTime, setStartingTime] = useState("0");
   const [endingTime, setEndingTime] = useState("999999999");
-  const [selectedType, setSelectedType] = useState('');
+  const [selectedType, setSelectedType] = useState('1');
   const [docs, setDocs] = useState<any>([]);
   const [yourBalance, setYourBalance] = useState("");
-  const [contractAddress, setContractAddress] = useState("");
   const [litSelectedChain, setLitSelectedChain] = useState('');
+
+  const { library, chainId, account } = useEthers();
   const router = useRouter()
-  const getEthBalance = async () => {
-    if (library && account) {
-      const res = await library?.getBalance(account);
-      const balance = hexToString(res);
-      setYourBalance(balance);
-      // console.log(`balance`, balance);
+
+  const [cond, setCond] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [chain, setChain] = useState('mumbai')
+  const [strEncrypted, setStrEncrypted] = useState('')
+  const [contractAddress, setContractAddress] = useState('0x938a5Edb375DDe749616232f7f4F628D6610684c')
+  const [strToBeEncrypt, setStrToBeEncrypt] = useState('This string will be encrypted by lit protocol')
+  const [symEncrypted, setSymEncrypted] = useState('')
+  const [contractAbi, setContractAbi] = useState([])
+
+
+  useEffect(() => {
+
+    async function init() {
+      //INIT LIT CLIENT
+      const client = new LitJsSdk.LitNodeClient()
+      await client.connect()
+      //@ts-ignore
+      window.litNodeClient = client
     }
-  };
+
+    init()
+    setLitSelectedChain(networks[chainId])
+  }, [])
+
+
   useEffect(() => {
-    getEthBalance();
-  }, [account, library]);
-  useEffect(() => {
-    if (chainId && contracts) {
-      const strChainId = chainId.toString() as keyof typeof NETWORKS;
-      const network = NETWORKS[strChainId];
-      const abis = ABIS as Record<string, any>;
-      if (abis[strChainId]) {
-        console.log(abis);
-        const abi =
-          abis[strChainId][network.name].contracts.ElectronicHealthLink.abi;
-        setAbi(abi);
-        const contract =
-          abis[strChainId][network.name].contracts.ElectronicHealthLink.address;
-        setYourReadContract(contracts.yourReadContract);
-        setYourWriteContract(contracts.yourWriteContract);
-        setContractAddress(contract);
+
+
+    function initContract() {
+
+
+      const abi = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].abi
+      const address = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].address
+
+      setContractAbi(abi)
+      setContractAddress(address)
+      console.log(contractAbi)
+      console.log(contractAddress)
+
+
+    }
+    if (chainId) {
+      initContract()
+      setLitSelectedChain(networks[chainId])
+    }
+
+
+  }, [chainId])
+
+  const checkChain = () => {
+
+    if (chainId == 80001 || chainId == 31337 || chainId == 137) {
+      return true
+    }
+    else {
+      return false
+    }
+
+  }
+
+
+  async function readContract(_contractFunName, par) {
+
+
+    if (checkChain) {
+
+      const signer = library?.getSigner()
+      //@ts-ignore
+      const c = new ethers.Contract(contractAddress, contractAbi, signer)
+      if (signer) {
+        try {
+          //console.log(par[0], par[1], par[2])
+          let res;
+          if (par.length == 0) {
+            res = await c[_contractFunName]()
+          }
+          if (par.length == 1) {
+            res = await c[_contractFunName](par[0])
+          }
+          if (par.length == 2) {
+            res = await c[_contractFunName](par[0], par[1])
+          }
+          if (par.length == 3) {
+            res = await c[_contractFunName](par[0], par[1], par[2])
+          }
+          if (par.length == 4) {
+            res = await c[_contractFunName](par[0], par[1], par[2], par[4])
+          }
+
+
+          alert(res)
+          return res
+
+        } catch (e: any) {
+          if (e.data) {
+            alert(e.message + "\n" + e.data.message);
+          } else {
+            alert(e.message);
+          }
+        }
+
+
       }
+    } else {
+      alert('connect or change  network')
     }
-  }, [chainId, contracts]);
-  useEffect(() => {
-
-    if (chainId == 80001) {
-      setLitSelectedChain('mumbai')
-    }
-    if (chainId == 4) {
-      setLitSelectedChain('rinkeby')
-    }
-    if (chainId == 10) {
-      setLitSelectedChain('optimism')
-    }
+  }
 
 
-  }, [chainId]);
+  async function writeContract(_contractFunName, par) {
+
+
+    if (checkChain) {
+
+      const signer = library?.getSigner()
+      //@ts-ignore
+      const c = new ethers.Contract(contractAddress, contractAbi, signer)
+      if (signer) {
+        try {
+          //console.log(par[0], par[1], par[2])
+          setLoading(true)
+          let tx;
+          let receipt;
+          if (par.length == 0) {
+
+            tx = await c[_contractFunName]()
+            receipt = tx.wait()
+
+          }
+          if (par.length == 1) {
+
+            tx = await c[_contractFunName](par[0])
+
+          }
+          if (par.length == 2) {
+
+            tx = await c[_contractFunName](par[0], par[1])
+
+          }
+          if (par.length == 3) {
+
+            tx = await c[_contractFunName](par[0], par[1], par[2])
+
+          }
+          if (par.length == 4) {
+
+            tx = await c[_contractFunName](par[0], par[1], par[2], par[3])
+
+          }
+
+          console.log(receipt)
+          setLoading(false)
+
+
+        } catch (e: any) {
+          if (e.data) {
+            alert(e.message + "\n" + e.data.message);
+          } else {
+            alert(e.message);
+          }
+
+        } finally {
+          setLoading(false)
+        }
+
+      }
+    } else {
+      alert('change  network')
+    }
+  }
+
+
+
   const decrypt = async (ipfsHash: string, encryptedSymmetricKey: string) => {
     console.log('encrypted symmetric key', encryptedSymmetricKey)
     console.log('ipfs hash', ipfsHash)
@@ -133,7 +234,7 @@ function ContractFields({ ...others }: any) {
 
         contractAddress: '0xA3e6c12F42989109e01b92304B84d78810E9f3F0',
         functionName: "checkAccess",
-        functionParams: [account, doctorAddressInput, '1'],
+        functionParams: [account, doctorAddressInput, selectedType],
         functionAbi: {
           "inputs": [
             {
@@ -172,8 +273,8 @@ function ContractFields({ ...others }: any) {
       },
     ];
 
-console.log('litSelectedchain--------->',litSelectedChain)
-    const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: chain})
+    console.log('litSelectedchain--------->', litSelectedChain)
+    const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: chain })
 
 
     console.log(authSig)
@@ -182,18 +283,18 @@ console.log('litSelectedchain--------->',litSelectedChain)
       "base64"
     );
 
-   // console.log('---------->symmetricKey base 16', LitJsSdk.uint8arrayToString(check, "base16"))
-//@ts-ignore
+    // console.log('---------->symmetricKey base 16', LitJsSdk.uint8arrayToString(check, "base16"))
+    //@ts-ignore
     const symmetricKey = await window.litNodeClient.getEncryptionKey({
       evmContractConditions,
       // Note, below we convert the encryptedSymmetricKey from a UInt8Array to a hex string.  This is because we obtained the encryptedSymmetricKey from "saveEncryptionKey" which returns a UInt8Array.  But the getEncryptionKey method expects a hex string.
       toDecrypt: LitJsSdk.uint8arrayToString(check, "base16"),
-     chain,
+      chain,
       authSig
     })
-   // console.log('---------->symmetricKey', symmetricKey)
+    // console.log('---------->symmetricKey', symmetricKey)
     let str = await fetch('https://ipfs.io/ipfs/' + ipfsHash).then(r => r.text());
-   // console.log(str)
+    // console.log(str)
     const arrayBuffer = uint8arrayFromString(
       str,
       "base64"
@@ -206,7 +307,7 @@ console.log('litSelectedchain--------->',litSelectedChain)
       symmetricKey
     );
 
-   // console.log('-------->decryptedString', decryptedString);
+    // console.log('-------->decryptedString', decryptedString);
 
     return decryptedString
   }
@@ -218,23 +319,19 @@ console.log('litSelectedchain--------->',litSelectedChain)
     console.log("doctorAddressInput: ", doctorAddressInput);
     console.log("selectedDocType: ", selectedDocType);
 
-    if (yourWriteContract && account) {
-      try {
-        const result = await yourWriteContract.checkAccess(
-          account,
-          doctorAddressInput,
-          parseInt(selectedType)
-        );
-        console.log(result);
-        setAccessCheck(result);
-      } catch (e: any) {
-        if (e.data) {
-          alert(e.message + "\n" + e.data.message);
-        } else {
-          alert(e.message);
-        }
-      }
+
+    try {
+      const result = await readContract('checkAccess', [
+        account,
+        doctorAddressInput,
+        parseInt(selectedType)]
+      );
+      console.log(result);
+      setAccessCheck(result);
+    } catch (e: any) {
+
     }
+
   }
   async function grantAccessFun() {
     console.log("started grantAccess function");
@@ -242,42 +339,35 @@ console.log('litSelectedchain--------->',litSelectedChain)
     console.log("starting time: ", startingTime);
     console.log("end time : ", endingTime);
     console.log("selectedType: ", selectedType);
-    if (yourWriteContract) {
-      try {
-        let typesArr = [];
-        typesArr.push(parseInt(selectedType));
-        console.log(typesArr);
-        const result = await yourWriteContract.grantAccess(
-          doctorAddressInput,
-          parseInt(startingTime),
-          parseInt(endingTime) * 100000,
-          typesArr
-        );
-        console.log(result);
-      } catch (e: any) {
-        if (e.data) {
-          alert(e.message + "\n" + e.data.message);
-        } else {
-          alert(e.message);
-        }
-      }
+
+    try {
+      let typesArr = [];
+      typesArr.push(parseInt(selectedType));
+      console.log(typesArr);
+      await writeContract('grantAccess', [
+        doctorAddressInput,
+        parseInt(startingTime),
+        parseInt(endingTime) * 100000,
+        typesArr
+      ])
+
+
+    } catch (e: any) {
+
     }
+
   }
   async function revokeAccessFun() {
     console.log("started revokeAccess function");
     console.log("doctorAddress: ", doctorAddressInput);
-    if (yourWriteContract && account) {
-      try {
-        const result = await yourWriteContract.revokeAccess(doctorAddressInput);
-        console.log(result);
-      } catch (e: any) {
-        if (e.data) {
-          alert(e.message + "\n" + e.data.message);
-        } else {
-          alert(e.message);
-        }
-      }
+
+    try {
+      await writeContract('revokeAccess', [doctorAddressInput])
+
+    } catch (e: any) {
+
     }
+
   }
   async function getDocumentsFromGrantFun() {
     console.log("started getDocumentsFromGrant function");
@@ -285,40 +375,36 @@ console.log('litSelectedchain--------->',litSelectedChain)
     setDocs([])
 
 
-    if (yourWriteContract && account) {
-      try {
-        const result: any = await yourWriteContract.getDocumentsAll(account/*,account,selectedType*/);
+
+    try {
+      const result: any = await readContract('getDocumentsAll', [account])
 
 
-        let arr: any = [];
-        result.map((item: any) => {
-          if (item.doctor == doctorAddressInput && item.documentType.toString() == selectedType)
-            arr.push({
-              createdAt: item.createdAt.toString(),
-              documentType: item.documentType.toString(),
-              ipfsLink: item.ipfsLink,
-              patient: item.patient,
-              encryptedSymmetricKey: item.encryptedSymmetricKey,
-              doctor: item.doctor
-            });
-        });
+      let arr: any = [];
+      result.map((item: any) => {
+        if (item.doctor == doctorAddressInput && item.documentType.toString() == selectedType)
+          arr.push({
+            createdAt: item.createdAt.toString(),
+            documentType: item.documentType.toString(),
+            ipfsLink: item.ipfsLink,
+            patient: item.patient,
+            encryptedSymmetricKey: item.encryptedSymmetricKey,
+            doctor: item.doctor
+          });
+      });
 
-        console.log('arrayGenerated', arr);
-        setDocs(arr);
-      } catch (e: any) {
-        if (e.data) {
-          alert(e.message + "\n" + e.data.message);
-        } else {
-          alert(e.message);
-        }
-      }
+      console.log('arrayGenerated', arr);
+      setDocs(arr);
+    } catch (e: any) {
+
     }
+
   }
 
   const handleAddressDoctorString = (e: ChangeEvent<HTMLInputElement>) => {
     setDoctorAddressInput(e.target.value);
   };
-  const handleSelectedType = (e:any) => {
+  const handleSelectedType = (e: any) => {
     setSelectedType(e.target.value);
 
   };
@@ -331,7 +417,7 @@ console.log('litSelectedchain--------->',litSelectedChain)
     setEndingTime(e.target.value);
   };
 
-  function handleBackClick(){
+  function handleBackClick() {
     router.push('/')
   }
 
@@ -426,13 +512,15 @@ console.log('litSelectedchain--------->',litSelectedChain)
 
       <Box m="2" p="3" border="1px" borderRadius="16">
         <TablePaginated table={docs} decrypt={decrypt} />
+
       </Box>
 
       <Button colorScheme='teal' variant='outline' onClick={handleBackClick}>
-          Back
+        Back
       </Button>
 
     </Box>
-  );
+  )
+
 }
-export default ContractFields;
+

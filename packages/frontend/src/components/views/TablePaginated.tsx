@@ -20,6 +20,7 @@ import {
 } from "@chakra-ui/react";
 const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY;
 import Pagination from "@choc-ui/paginator";
+import { saveAs } from 'file-saver';
 
 const TablePaginated = ({ table, decrypt }) => {
   const toast = useToast();
@@ -44,12 +45,16 @@ const TablePaginated = ({ table, decrypt }) => {
     onCopy();
   }
   const Prev = forwardRef((props, ref) => (
-    <Button ref={ref} {...props}>
+    <Button
+    //@ts-ignore
+    ref={ref} {...props}>
       Prev
     </Button>
   ));
   const Next = forwardRef((props, ref) => (
-    <Button ref={ref} {...props}>
+    <Button 
+       //@ts-ignore
+    ref={ref} {...props}>
       Next
     </Button>
   ));
@@ -61,14 +66,33 @@ const TablePaginated = ({ table, decrypt }) => {
       return Next;
     }
   };
-
+  function dataURLtoFile(dataurl, filename) {
+ 
+    var arr = dataurl.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), 
+        n = bstr.length, 
+        u8arr = new Uint8Array(n);
+        
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    
+    return new File([u8arr], filename, {type:mime});
+}
   const downloadImage = async (link,encryptedSymmetricKey) => {
     const base64 = await decrypt(link,encryptedSymmetricKey);
+
+    var file = dataURLtoFile(base64,'download')
+    console.log(file)
+    saveAs(file)
+   /* 
     const extension = base64.substring("data:image/".length, base64.indexOf(";base64"))
     const downloadLink = document.createElement("a");
     downloadLink.href = base64;
     downloadLink.download = link + "."+extension;
     downloadLink.click();
+    document.body.removeChild(downloadLink);*/
   };
 
   return (

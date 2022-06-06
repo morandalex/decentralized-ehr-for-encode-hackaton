@@ -226,5 +226,233 @@
         }
       }
     }
+  },
+  "80001": {
+    "mumbai": {
+      "name": "mumbai",
+      "chainId": "80001",
+      "contracts": {
+        "ElectronicHealthLink": {
+          "address": "0x061D8AB256db1cA2090308bdefEc0D393147C33B",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_patient",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_doctor",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_documentType",
+                  "type": "uint256"
+                }
+              ],
+              "name": "checkAccess",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_patient",
+                  "type": "address"
+                }
+              ],
+              "name": "getDocumentsAll",
+              "outputs": [
+                {
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "patient",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "address",
+                      "name": "doctor",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "documentType",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "createdAt",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "string",
+                      "name": "ipfsLink",
+                      "type": "string"
+                    },
+                    {
+                      "internalType": "string",
+                      "name": "encryptedSymmetricKey",
+                      "type": "string"
+                    }
+                  ],
+                  "internalType": "struct Document[]",
+                  "name": "",
+                  "type": "tuple[]"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_patient",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_doctor",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_docType",
+                  "type": "uint256"
+                }
+              ],
+              "name": "getDocumentsFromGrant",
+              "outputs": [
+                {
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "patient",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "address",
+                      "name": "doctor",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "documentType",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "createdAt",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "string",
+                      "name": "ipfsLink",
+                      "type": "string"
+                    },
+                    {
+                      "internalType": "string",
+                      "name": "encryptedSymmetricKey",
+                      "type": "string"
+                    }
+                  ],
+                  "internalType": "struct Document[]",
+                  "name": "",
+                  "type": "tuple[]"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_doctor",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_start",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_end",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256[]",
+                  "name": "_documentTypes",
+                  "type": "uint256[]"
+                }
+              ],
+              "name": "grantAccess",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_patient",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_documentType",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "string",
+                  "name": "_ipfsLink",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "_encryptedSymmetricKey",
+                  "type": "string"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_doctor",
+                  "type": "address"
+                }
+              ],
+              "name": "pushDocument",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_grantAddress",
+                  "type": "address"
+                }
+              ],
+              "name": "revokeAccess",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            }
+          ]
+        }
+      }
+    }
   }
 }
