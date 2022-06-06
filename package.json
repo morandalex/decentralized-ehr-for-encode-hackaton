@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "yarn workspace nextjs-ethereum-starter-frontend dev",
-    "build": "yarn workspace nextjs-ethereum-starter-frontend build",
-    "start": "yarn workspace nextjs-ethereum-starter-frontend start",
-    "chain": "yarn workspace nextjs-ethereum-starter-hardhat chain",
-    "deploy": "yarn workspace nextjs-ethereum-starter-hardhat deploy",
-    "compile": "yarn workspace nextjs-ethereum-starter-hardhat compile"
+    "dev": "yarn workspace dehr-frontend dev",
+    "build": "yarn workspace dehr-frontend build",
+    "start": "yarn workspace dehr-frontend start",
+    "chain": "yarn workspace dehr-contracts chain",
+    "deploy": "yarn workspace dehr-contracts deploy",
+    "compile": "yarn workspace dehr-contracts compile"
   },
   "workspaces": {
     "packages": [
