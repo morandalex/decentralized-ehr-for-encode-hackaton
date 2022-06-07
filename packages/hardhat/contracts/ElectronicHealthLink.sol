@@ -18,18 +18,32 @@ struct Grant {
 
 contract ElectronicHealthLink {
 
+
+    //Declare an Event
+//event Deposit(address indexed _from, bytes32 indexed _id, uint _value);
+
+//Emit an event
+//emit Deposit(msg.sender, _id, msg.value);
+
+
+    event RevokeAccess(address indexed _revokeAddress);
+    event GrantAccess(address indexed _grantAddress, uint256 _start, uint256  _end, uint256[]  _documentTypes);
+    event PushDocument(address indexed _patient, uint256 _documentType,  string  indexed _ipfsLink ,address indexed  _doctor);
+
     mapping(address => Document[]) documents;
     //A mapping of the addresses of PATIENTS to DOCTORS with the grant they have
     mapping(address => mapping(address => Grant)) grantlist;
     Document[] r;
 
-    function revokeAccess(address _grantAddress) public {
-        delete grantlist[msg.sender][_grantAddress];
+    function revokeAccess(address _revokeAddress) public {
+        delete grantlist[msg.sender][_revokeAddress];
+        emit RevokeAccess(_revokeAddress);
     }
 
     function grantAccess(address _doctor, uint256 _start, uint256  _end, uint256[] calldata _documentTypes) public {
         Grant memory g = Grant({start: _start, end: _end, documentTypes: _documentTypes});
         grantlist[msg.sender][_doctor] = g;
+        emit GrantAccess(_doctor,_start,_end,_documentTypes);
     }
 
     function pushDocument(address _patient, uint256 _documentType,  string calldata _ipfsLink,string calldata _encryptedSymmetricKey,address _doctor) public {
@@ -43,6 +57,8 @@ contract ElectronicHealthLink {
             
             });
         documents[_patient].push(d);
+
+        emit PushDocument(_patient, _documentType, _ipfsLink, _doctor);
     }
 
     function checkAccess(address _patient, address _doctor, uint256 _documentType) public view returns (bool) {

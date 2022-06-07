@@ -8,6 +8,81 @@
           "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
           "abi": [
             {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "_grantAddress",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_start",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_end",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256[]",
+                  "name": "_documentTypes",
+                  "type": "uint256[]"
+                }
+              ],
+              "name": "GrantAccess",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "_patient",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_documentType",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "string",
+                  "name": "_ipfsLink",
+                  "type": "string"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "_doctor",
+                  "type": "address"
+                }
+              ],
+              "name": "PushDocument",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "_revokeAddress",
+                  "type": "address"
+                }
+              ],
+              "name": "RevokeAccess",
+              "type": "event"
+            },
+            {
               "inputs": [
                 {
                   "internalType": "address",
@@ -213,7 +288,7 @@
               "inputs": [
                 {
                   "internalType": "address",
-                  "name": "_grantAddress",
+                  "name": "_revokeAddress",
                   "type": "address"
                 }
               ],
@@ -233,8 +308,83 @@
       "chainId": "80001",
       "contracts": {
         "ElectronicHealthLink": {
-          "address": "0x061D8AB256db1cA2090308bdefEc0D393147C33B",
+          "address": "0x3aC0203e43609dA8Ca441a6eBFD652BcECF520Af",
           "abi": [
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "_grantAddress",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_start",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_end",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256[]",
+                  "name": "_documentTypes",
+                  "type": "uint256[]"
+                }
+              ],
+              "name": "GrantAccess",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "_patient",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_documentType",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "string",
+                  "name": "_ipfsLink",
+                  "type": "string"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "_doctor",
+                  "type": "address"
+                }
+              ],
+              "name": "PushDocument",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "_revokeAddress",
+                  "type": "address"
+                }
+              ],
+              "name": "RevokeAccess",
+              "type": "event"
+            },
             {
               "inputs": [
                 {
@@ -441,7 +591,7 @@
               "inputs": [
                 {
                   "internalType": "address",
-                  "name": "_grantAddress",
+                  "name": "_revokeAddress",
                   "type": "address"
                 }
               ],

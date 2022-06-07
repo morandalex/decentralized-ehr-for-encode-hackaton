@@ -5,8 +5,8 @@
 /.pnp
 .pnp.js
 .env
-/packages/hardhat/.env
-/packages/frontend/.env
+packages/hardhat/.env
+packages/frontend/.env
 # misc
 .DS_Store
 *.pem
