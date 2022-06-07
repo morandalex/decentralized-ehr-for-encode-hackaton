@@ -10,15 +10,15 @@ import 'hardhat-deploy-ethers';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import 'hardhat-deploy';
-import { HardhatUserConfig, task } from 'hardhat/config';
-import { HttpNetworkUserConfig } from 'hardhat/types';
+import { HardhatUserConfig, task } from 'hardhat/src/config';
+import { HttpNetworkUserConfig } from 'hardhat/src/types';
 import { TEthers } from './helpers/types/hardhat-type-extensions';
 
 
 import 'tsconfig-paths/register';
 dotenv.config();
 
-declare module 'hardhat/types/runtime' {
+declare module 'hardhat/src/types/runtime' {
   // This is an example of an extension to the Hardhat Runtime Environment.
   // This new field will be available in tasks' actions, scripts, and tests.
   export interface HardhatRuntimeEnvironment {
