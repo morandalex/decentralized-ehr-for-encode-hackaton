@@ -299,12 +299,17 @@ const NAV_ITEMS: Array<NavItem> = [
   },
 
   {
-    label: 'Lit protocol Tests',
+    label: 'Tests',
     children: [
       {
-        label: 'simple test',
-        subLabel: 'working with string encryption',
-        href: '/lit-simple-test',
+        label: 'Lit protocol Tests',
+        subLabel: 'Working with string encryption',
+        href: '/test-lit-protocol',
+      },
+      {
+        label: 'Covalent Tests',
+        subLabel: 'getting data from covalent api',
+        href: '/test-covalent',
       }
     ],
   },
