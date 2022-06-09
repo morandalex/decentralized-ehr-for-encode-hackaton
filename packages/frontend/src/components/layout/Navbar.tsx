@@ -310,6 +310,11 @@ const NAV_ITEMS: Array<NavItem> = [
         label: 'Covalent Tests',
         subLabel: 'getting data from covalent api',
         href: '/test-covalent',
+      },
+      {
+        label: 'Doctor Analytics',
+        subLabel: 'doctor analytics using covalent api',
+        href: '/test-doctor-analytics',
       }
     ],
   },
