@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Layout from '../components/layout/Layout'
-import { Button, Box, Text, Heading, HStack, Center, Divider  } from '@chakra-ui/react'
+import { Button, Box, Spacer, Heading, HStack, Center, Divider, Flex  } from '@chakra-ui/react'
 import {
   Table,
   Thead,
@@ -21,7 +21,7 @@ export default function DoctorAnalyticsTest() {
     const [decodedEventGrantAccess, setDecodedEventGrantAccess] = useState([])
     const [eventData, setEventData] = useState([])
     const [selectedEvent,setSelectedEvent] = useState('')
-    const [startingBlock, setStartingBlock] = useState('26639009')
+    const [startingBlock, setStartingBlock] = useState('26639550')
     const [endingBlock, setEndingBlock] = useState('latest')
     const {library} = useEthers()
 
@@ -63,8 +63,6 @@ export default function DoctorAnalyticsTest() {
         try {
                 const contractAddress = '0x3aC0203e43609dA8Ca441a6eBFD652BcECF520Af'
                 const key = process.env.NEXT_PUBLIC_COVALENT_KEY
-                //const startingBlock = '26639550'
-                //const endingBlock = '26644057'
 
                 const d = await fetch('https://api.covalenthq.com/v1/80001/events/address/' + contractAddress + '/?starting-block=' + startingBlock + '&ending-block=' + endingBlock + '&key=' + key)
                     .then(response => response.json())
@@ -146,19 +144,19 @@ export default function DoctorAnalyticsTest() {
             {
                 (selectedEvent == 'GrantAccess')
                 && (
-                            <TableContainer>
-                                <Table variant='striped' colorScheme='teal'>
-                                    <TableCaption placement='top' fontWeight= 'bold'>Patient Document Timelines</TableCaption>
-                                    <Thead>
-                                        <Tr>
-                                            <Th>Patient Address</Th>
-                                            <Th>Document Type</Th>
-                                            <Th>Access Start</Th>                                            
-                                            <Th>Access End</Th>
-                                        </Tr>
-                                    </Thead>
-                                  </Table>
-                            </TableContainer>
+                                        <TableContainer>
+                                                <Table variant='striped' colorScheme='teal'>
+                                                    <TableCaption placement='top' fontWeight= 'bold'>Patient Document Timelines</TableCaption>
+                                                    <Thead>
+                                                        <Tr>
+                                                            <Th>Patient Address</Th>
+                                                            <Th>Document Type</Th>
+                                                            <Th>Access Start</Th>                                            
+                                                            <Th>Access End</Th>
+                                                        </Tr>
+                                                    </Thead>
+                                                </Table>
+                                            </TableContainer>
                    )
             }
         </Box>
@@ -166,22 +164,20 @@ export default function DoctorAnalyticsTest() {
             {
                 (selectedEvent == 'GrantAccess') 
                 && (decodedEventGrantAccess.map((item, i) => {
-                                return (< div key={i}>
-                                        <Divider my='1'></Divider>
-                                            <TableContainer>                                          
-                                                <Table variant='striped' colorScheme='teal'>
-                                                    <Tbody>
-                                                    <Tr>
-                                                        <Td >{item.patientAddress}</Td>
-                                                        <Td>{item.documentTypes}</Td>
-                                                        <Td >{item.start}</Td>
-                                                        <Td >{item.end}</Td>
-                                                    </Tr>
-                                                    </Tbody>
-                                                </Table> 
-                                          </TableContainer>
-                                    </div>
-                                )
+                                return (
+                                        < div key={i}>
+                                            <Divider my='1'></Divider>
+                                            <Flex>
+                                            <Box color='teal'> {item.patientAddress} </Box>
+                                            <Box color='teal' pl='20'> {item.documentTypes} </Box>
+                                            <Spacer />
+                                            <Box color='teal' pl='20'> {item.start} </Box>
+                                            <Spacer />
+                                            <Box color='teal' pl='20'> {item.end} </Box>
+                                            <Spacer />
+                                            </Flex>
+                                        </div>
+                                    )
                     })
                 )
 
