@@ -13,7 +13,7 @@ export default function CovalentTest() {
     const [contractAddress, setContractAddress] = useState('')
     const { library } = useEthers()
     const [startingBlock, setStartingBlock] = useState('26639550')
-    const [endingBlock, setEndingBlock] = useState('26710342')
+    const [endingBlock, setEndingBlock] = useState('latest')
     const [selectedEvent, setSelectedEvent] = useState('')
 
     useEffect(() => {
@@ -34,7 +34,7 @@ export default function CovalentTest() {
 
         }
 
-        getLatestBlock()
+       // getLatestBlock()
     }, [])
 
     async function getSignerAddress() {
@@ -128,27 +128,27 @@ export default function CovalentTest() {
                         index = i
                     }
                 });
-                console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
+               // console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
                 if (String(item.raw_log_topics[0]) == eventData[index].eventTopicNameEncoded) {
-                    const addr = utils.defaultAbiCoder.decode(['address'], item.raw_log_topics[1])
+                    const doctor = utils.defaultAbiCoder.decode(['address'], item.raw_log_topics[1])
                     const decoded = utils.defaultAbiCoder.decode(['uint256', 'uint256', 'uint256[]', 'address'], item.raw_log_data)
-                    //   if (signerAddr == String(addr))
-                    //  {
+                    if (signerAddr == String(decoded[3]))
+                      {
                     let contractEvent = {
                         block_height: String(item.block_height),
                         block_signed_at: String(item.block_signed_at),
                         tx_hash: String(item.tx_hash),
 
-                        sender_address: String(decoded[3]),
+                        patient: String(decoded[3]),
                         topic: String(item.raw_log_topics[0]),
-                        grantAddress: String(addr),
+                        grantAddress: String(doctor),
                         start: String(decoded[0]),
                         end: String(decoded[1]),
                         documentTypes: String(decoded[2])
                     }
                     arr.push(contractEvent)
                     // console.log(decoded)
-                    // }
+                     }
                 }
             }
         )
@@ -165,15 +165,15 @@ export default function CovalentTest() {
                         index = i
                     }
                 });
-                console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
+               // console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
                 if (String(item.raw_log_topics[0]) == eventData[index].eventTopicNameEncoded) {
                     const patient = utils.defaultAbiCoder.decode(['address'], item.raw_log_topics[1])
                     //const ipfsLink = utils.defaultAbiCoder.decode(['uint'], item.raw_log_topics[2])
                     const doctor = utils.defaultAbiCoder.decode(['address'], item.raw_log_topics[2])
                     const decoded = utils.defaultAbiCoder.decode(['uint256', 'string'], item.raw_log_data)
                     // console.log('ipfslink', ipfsLink)
-                    //  if (signerAddr == String(patient))
-                    //  {
+                      if (signerAddr == String(patient))
+                      {
                     let contractEvent = {
                         block_height: String(item.block_height),
                         block_signed_at: String(item.block_signed_at),
@@ -188,7 +188,7 @@ export default function CovalentTest() {
                     }
                     arr.push(contractEvent)
                     // console.log(decoded)
-                    // }
+                     }
                 }
             }
         )
@@ -205,24 +205,24 @@ export default function CovalentTest() {
                         index = i
                     }
                 });
-                console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
+              //  console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
                 if (String(item.raw_log_topics[0]) == eventData[index].eventTopicNameEncoded) {
-                    const addr = utils.defaultAbiCoder.decode(['address'], item.raw_log_topics[1])
+                    const doctor = utils.defaultAbiCoder.decode(['address'], item.raw_log_topics[1])
                     const decoded = utils.defaultAbiCoder.decode(['address'], item.raw_log_data)
-                    //  if (signerAddr == String(patient))
-                    //  {
+                      if (signerAddr == String(decoded[0]))
+                      {
                     let contractEvent = {
                         block_height: String(item.block_height),
                         block_signed_at: String(item.block_signed_at),
                         tx_hash: String(item.tx_hash),
-                        sender_address: String(decoded[0]),
+                       patient: String(decoded[0]),
                         topic: String(item.raw_log_topics[0]),
-                        revokeAddress: String(addr),
+                        revokeAddress: String(doctor),
 
 
                     }
                     arr.push(contractEvent)
-                    //}
+                    }
                 }
             }
         )
@@ -263,8 +263,8 @@ export default function CovalentTest() {
                         return (< div key={i}>
                             <Divider my='1'></Divider>
                             <Text>Topic : {item.topic}</Text>
-                            <Text>Sender Address: {item.sender_address}</Text>
-                            <Text>Grant to  user  : {item.grantAddress}</Text>
+                            <Text>Patient: {item.patient}</Text>
+                            <Text>Allows grants to  doctor  : {item.grantAddress}</Text>
                             <Text>Start Block Grant : {item.start}</Text>
                             <Text>End Block Grant :{item.end}</Text>
                             <Text>Doc Types:{item.documentTypes}</Text>
@@ -281,8 +281,8 @@ export default function CovalentTest() {
                         return (< div key={i}>
                             <Divider my='1'></Divider>
                             <Text>Topic : {item.topic}</Text>
-                            <Text>Sender Address : {item.sender_address}</Text>
-                            <Text>Revoke to user  : {item.revokeAddress}</Text>
+                            <Text>Patient : {item.patient}</Text>
+                            <Text>Revoke grants to  doctor  : {item.revokeAddress}</Text>
 
                             <Text>Block: {item.block_height}</Text>
                             <Text>Signed at : {item.block_signed_at}</Text>

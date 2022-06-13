@@ -167,7 +167,7 @@ export default function DoctorAdd() {
             res = await c[_contractFunName](par[0], par[1], par[2])
           }
           if (par.length == 4) {
-            res = await c[_contractFunName](par[0], par[1], par[2], par[4])
+            res = await c[_contractFunName](par[0], par[1], par[2], par[3])
           }
 
 
@@ -349,9 +349,11 @@ export default function DoctorAdd() {
 
 
     try {
+      console.log('start loading on ipfs nft.storage ...')
       metadata = await clientipfsnftstorage.storeBlob(blobToIpfs)
+      console.log('finish loading on ipfs nft.storage ')
     }
-    catch (e) { alert(e.message) }
+    catch (e) { console.log(e) }
 
     console.log(metadata)
 
@@ -496,10 +498,11 @@ export default function DoctorAdd() {
         {
           //<Button onClick={()=>{ nftStorageFun('hello world')}}>test nft storage</Button>
         }
+       {/*
         <Button colorScheme='teal' mt='10px' variant='outline' onClick={handleBackClick}>
           Back
         </Button>
-
+      */}
       </Box>
 
 

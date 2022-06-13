@@ -33,6 +33,12 @@
                   "internalType": "uint256[]",
                   "name": "_documentTypes",
                   "type": "uint256[]"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "_patient",
+                  "type": "address"
                 }
               ],
               "name": "GrantAccess",
@@ -54,7 +60,7 @@
                   "type": "uint256"
                 },
                 {
-                  "indexed": true,
+                  "indexed": false,
                   "internalType": "string",
                   "name": "_ipfsLink",
                   "type": "string"
@@ -76,6 +82,12 @@
                   "indexed": true,
                   "internalType": "address",
                   "name": "_revokeAddress",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "_patient",
                   "type": "address"
                 }
               ],
@@ -308,7 +320,7 @@
       "chainId": "80001",
       "contracts": {
         "ElectronicHealthLink": {
-          "address": "0x3aC0203e43609dA8Ca441a6eBFD652BcECF520Af",
+          "address": "0x200788E6A8aD99d484C7Dd307A18a9a840Adefa7",
           "abi": [
             {
               "anonymous": false,
@@ -336,6 +348,12 @@
                   "internalType": "uint256[]",
                   "name": "_documentTypes",
                   "type": "uint256[]"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "_patient",
+                  "type": "address"
                 }
               ],
               "name": "GrantAccess",
@@ -357,7 +375,7 @@
                   "type": "uint256"
                 },
                 {
-                  "indexed": true,
+                  "indexed": false,
                   "internalType": "string",
                   "name": "_ipfsLink",
                   "type": "string"
@@ -379,6 +397,12 @@
                   "indexed": true,
                   "internalType": "address",
                   "name": "_revokeAddress",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "_patient",
                   "type": "address"
                 }
               ],

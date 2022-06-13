@@ -20,6 +20,7 @@ import {
   Select,
 } from "@chakra-ui/react";
 import TablePaginated from "./TablePaginated";
+import MultiSelectMenu from '../multiple-select'
 import { useEthers } from '@usedapp/core'
 import { ethers, utils } from 'ethers'
 import LitJsSdk from 'lit-js-sdk'
@@ -41,8 +42,8 @@ export default function Patient() {
   const [selectedDocType, setSelectedDocType] = useState("1");
   const [doctorAddressInput, setDoctorAddressInput] = useState("");
   const [startingTime, setStartingTime] = useState("0");
-  const [endingTime, setEndingTime] = useState("999999999");
-  const [selectedType, setSelectedType] = useState('1');
+  const [endingTime, setEndingTime] = useState("300000000");
+  //const [selectedType, setSelectedType] = useState('1');
   const [docs, setDocs] = useState<any>([]);
   const [yourBalance, setYourBalance] = useState("");
   const [litSelectedChain, setLitSelectedChain] = useState('');
@@ -54,7 +55,7 @@ export default function Patient() {
   const [loading, setLoading] = useState(false);
   const [chain, setChain] = useState('mumbai')
   const [strEncrypted, setStrEncrypted] = useState('')
-  const [contractAddress, setContractAddress] = useState('0x938a5Edb375DDe749616232f7f4F628D6610684c')
+  const [contractAddress, setContractAddress] = useState('')
   const [strToBeEncrypt, setStrToBeEncrypt] = useState('This string will be encrypted by lit protocol')
   const [symEncrypted, setSymEncrypted] = useState('')
   const [contractAbi, setContractAbi] = useState([])
@@ -136,7 +137,7 @@ export default function Patient() {
             res = await c[_contractFunName](par[0], par[1], par[2])
           }
           if (par.length == 4) {
-            res = await c[_contractFunName](par[0], par[1], par[2], par[4])
+            res = await c[_contractFunName](par[0], par[1], par[2], par[3])
           }
 
 
@@ -224,60 +225,64 @@ export default function Patient() {
 
 
   const decrypt = async (ipfsHash: string, encryptedSymmetricKey: string) => {
+    if (selectedDocType.length==1){
+
+      console.log('PARAMETERS',[account, doctorAddressInput, selectedDocType[0]])
     console.log('encrypted symmetric key', encryptedSymmetricKey)
     console.log('ipfs hash', ipfsHash)
     console.log('patient address input', account)
     console.log('doctor address input', doctorAddressInput)
     const chain = litSelectedChain;
+   
     const evmContractConditions = [
       {
 
-        contractAddress: '0xA3e6c12F42989109e01b92304B84d78810E9f3F0',
+        contractAddress: contractAddress,
         functionName: "checkAccess",
-        functionParams: [account, doctorAddressInput, selectedType],
+        functionParams: [account, doctorAddressInput, selectedDocType[0]],
         functionAbi: {
-          "inputs": [
-            {
-              "internalType": "address",
-              "name": "__patient",
-              "type": "address"
-            },
-            {
-              "internalType": "address",
-              "name": "_doctor",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "_documentType",
-              "type": "uint256"
-            }
+          inputs: [
+              {
+                  internalType: "address",
+                  name: "_patient",
+                  type: "address",
+              },
+              {
+                  internalType: "address",
+                  name: "_doctor",
+                  type: "address",
+              },
+              {
+                  internalType: "uint256",
+                  name: "_documentType",
+                  type: "uint256",
+              },
           ],
-          "name": "checkAccess",
-          "outputs": [
-            {
-              "internalType": "bool",
-              "name": "",
-              "type": "bool"
-            }
+          name: "checkAccess",
+          outputs: [
+              {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+              },
           ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        chain: chain,
-        returnValueTest: {
+          stateMutability: "view",
+          type: "function",
+      },
+      chain: chain,
+      returnValueTest: {
           key: "",
           comparator: "=",
           value: "true",
-        },
+      },
       },
     ];
 
-    console.log('litSelectedchain--------->', litSelectedChain)
+    //console.log('litSelectedchain--------->', litSelectedChain)
     const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: chain })
 
 
-    console.log(authSig)
+    //console.log(authSig)
     const check = uint8arrayFromString(
       encryptedSymmetricKey,
       "base64"
@@ -310,6 +315,10 @@ export default function Patient() {
     // console.log('-------->decryptedString', decryptedString);
 
     return decryptedString
+
+
+    }
+    else alert('select only one type')
   }
 
 
@@ -319,18 +328,25 @@ export default function Patient() {
     console.log("doctorAddressInput: ", doctorAddressInput);
     console.log("selectedDocType: ", selectedDocType);
 
+if(selectedDocType.length == 1){
+  try {
+    const result = await readContract('checkAccess', [
+      account,
+      doctorAddressInput,
+      selectedDocType[0]
+    ]
+    );
+    console.log(result);
+    setAccessCheck(result);
+  } catch (e: any) {
 
-    try {
-      const result = await readContract('checkAccess', [
-        account,
-        doctorAddressInput,
-        parseInt(selectedType)]
-      );
-      console.log(result);
-      setAccessCheck(result);
-    } catch (e: any) {
+  }
+} else 
+{
+alert('Please select only one doc type')
 
-    }
+}
+
 
   }
   async function grantAccessFun() {
@@ -338,17 +354,19 @@ export default function Patient() {
     console.log("doctor address: ", doctorAddressInput);
     console.log("starting time: ", startingTime);
     console.log("end time : ", endingTime);
-    console.log("selectedType: ", selectedType);
+    console.log("selectedType: ", selectedDocType);
 
     try {
-      let typesArr = [];
-      typesArr.push(parseInt(selectedType));
-      console.log(typesArr);
+//      let typesArr = [];
+      
+  //    typesArr.push(parseInt(selectedDocType));
+
+    //  console.log(typesArr);
       await writeContract('grantAccess', [
         doctorAddressInput,
         parseInt(startingTime),
         parseInt(endingTime) * 100000,
-        typesArr
+        selectedDocType
       ])
 
 
@@ -382,7 +400,7 @@ export default function Patient() {
 
       let arr: any = [];
       result.map((item: any) => {
-        if (item.doctor == doctorAddressInput && item.documentType.toString() == selectedType)
+        if (item.doctor == doctorAddressInput && item.documentType.toString() == selectedDocType)
           arr.push({
             createdAt: item.createdAt.toString(),
             documentType: item.documentType.toString(),
@@ -404,8 +422,8 @@ export default function Patient() {
   const handleAddressDoctorString = (e: ChangeEvent<HTMLInputElement>) => {
     setDoctorAddressInput(e.target.value);
   };
-  const handleSelectedType = (e: any) => {
-    setSelectedType(e.target.value);
+  const handleSelectedDocType = (e: any) => {
+    setSelectedDocType(e.target.value);
 
   };
 
@@ -439,18 +457,26 @@ export default function Patient() {
             onChange={handleAddressDoctorString}
           ></Input>
           <FormLabel mt={5}>Type of document</FormLabel>
+          {
+            /*
 
-          <Select
-            id="country"
-            placeholder="Select type"
-            mb={5}
-            //@ts-ignore
-            onChange={handleSelectedType}
-          >
-            <option value="1">Medical doc type 1</option>
-            <option value="2">Medical doc type 2</option>
-            <option value="3">Medical doc type 3</option>
-          </Select>
+                    <Select
+                      id="country"
+                      placeholder="Select type"
+                      mb={5}
+                      //@ts-ignore
+                      onChange={handleSelectedType}
+                    >
+                      <option value="1">Medical doc type 1</option>
+                      <option value="2">Medical doc type 2</option>
+                      <option value="3">Medical doc type 3</option>
+                    </Select>
+          */
+          }
+          <HStack>
+            <MultiSelectMenu setSelectedDocType={setSelectedDocType} label="Health docs list" options={["1", "2", "3"]} optionLabels={["1- reports of examinations", "2 - specialist and pharmaceutical prescriptions;", "3 - summary health profile "]} />
+            <Text>{JSON.stringify(selectedDocType)}</Text>
+          </HStack>
           <FormLabel>Starting Time</FormLabel>
           <Input value={startingTime} onChange={handleStartingTime}></Input>
           <FormLabel>Ending Time</FormLabel>
@@ -491,19 +517,20 @@ export default function Patient() {
             onChange={handleAddressDoctorString}
           ></Input>
           <FormLabel mt={5}>Type of document</FormLabel>
-
+{/*
           <Select
             id="country"
             placeholder="Select type"
             mb={5}
             //@ts-ignore
-            onChange={handleSelectedType}
+            onChange={handleSelectedDocType}
           >
             <option value="1">Medical doc type 1</option>
             <option value="2">Medical doc type 2</option>
             <option value="3">Medical doc type 3</option>
           </Select>
-
+          */
+}
           <Button colorScheme="teal" onClick={() => getDocumentsFromGrantFun()}>
             getDocumentsFromGrantFun()
           </Button>

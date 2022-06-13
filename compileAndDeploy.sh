@@ -3,8 +3,8 @@
 
 yarn compile
 
-yarn deploy --network localhost
-#yarn deploy --network mumbai
+#yarn deploy --network localhost
+yarn deploy --network mumbai
 
 
 

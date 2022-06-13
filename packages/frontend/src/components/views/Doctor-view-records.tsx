@@ -91,7 +91,7 @@ export default function DoctorView() {
     const [loading, setLoading] = useState(false);
     const [chain, setChain] = useState('mumbai')
     const [strEncrypted, setStrEncrypted] = useState('')
-    const [contractAddress, setContractAddress] = useState('0x938a5Edb375DDe749616232f7f4F628D6610684c')
+    const [contractAddress, setContractAddress] = useState('')
     const [strToBeEncrypt, setStrToBeEncrypt] = useState('This string will be encrypted by lit protocol')
     const [symEncrypted, setSymEncrypted] = useState('')
     const [contractAbi, setContractAbi] = useState([])
@@ -173,7 +173,7 @@ export default function DoctorView() {
                         res = await c[_contractFunName](par[0], par[1], par[2])
                     }
                     if (par.length == 4) {
-                        res = await c[_contractFunName](par[0], par[1], par[2], par[4])
+                        res = await c[_contractFunName](par[0], par[1], par[2], par[3])
                     }
 
 
@@ -332,11 +332,13 @@ export default function DoctorView() {
 
 
     const decrypt = async (ipfsHash: string, encryptedSymmetricKey: string) => {
+        console.log('PARAMETERS',[patientAddressInput, account, selectedType])
         console.log('encrypted symmetric key', encryptedSymmetricKey)
         console.log('ipfs hash', ipfsHash)
         console.log('doctor address input', account)
         console.log('doctor address input', patientAddressInput)
         const chain = litSelectedChain;
+      
         const evmContractConditions =
             [
                 {
@@ -389,7 +391,7 @@ export default function DoctorView() {
             "base64"
         );
 
-        console.log('---------->symmetricKey base 16', LitJsSdk.uint8arrayToString(check, "base16"))
+       // console.log('---------->symmetricKey base 16', LitJsSdk.uint8arrayToString(check, "base16"))
         //@ts-ignore
         const symmetricKey = await window.litNodeClient.getEncryptionKey({
             evmContractConditions,
@@ -398,7 +400,7 @@ export default function DoctorView() {
             chain,
             authSig
         })
-        console.log('---------->symmetricKey', symmetricKey)
+        //console.log('---------->symmetricKey', symmetricKey)
         let str = await fetch('https://ipfs.io/ipfs/' + ipfsHash).then(r => r.text());
         console.log(str)
         const arrayBuffer = uint8arrayFromString(
@@ -507,10 +509,11 @@ export default function DoctorView() {
 
           </Box>
         </VStack>
-  
+       {/*
         <Button colorScheme='teal' mt='10px' variant='outline' onClick={handleBackClick}>
-              Back
+          Back
         </Button>
+      */}
   
   
       </Box>

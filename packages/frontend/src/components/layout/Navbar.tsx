@@ -287,17 +287,37 @@ const NAV_ITEMS: Array<NavItem> = [
       },
       {
         label: 'View records',
-        subLabel: 'here you can view your patient documents',
+        subLabel: 'here you can view patient documents',
         href: '/doctor-view',
       },
+      {
+        label:'Analytics',
+        subLabel:'covalent data for the doctor',
+        href:'/analytics-doctor'
+      }
     ],
   },
 
   {
     label: 'Patient ',
-    href: '/patient',
+    children:[
+      {
+        label: 'Set doctor access',
+        subLabel: 'set who can view documents',
+        href: '/patient',
+      },
+      {
+        label:'Analytics',
+        subLabel:'covalent data for the patient',
+        href:'/analytics-patient'
+      }
+    ]
   },
-
+{
+  label: 'Global Analytics',
+  href :'/analytics-all'
+}
+/*
   {
     label: 'Tests',
     children: [
@@ -318,5 +338,5 @@ const NAV_ITEMS: Array<NavItem> = [
       }
     ],
   },
-
+*/
 ];
