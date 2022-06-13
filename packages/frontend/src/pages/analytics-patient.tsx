@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
 import Layout from '../components/layout/Layout'
-import { Button, Box, Text, Divider, HStack, Select } from '@chakra-ui/react'
+import { Button, Heading, Box, Text, Divider, HStack, Select } from '@chakra-ui/react'
 import { utils } from 'ethers'
 import ABIs from '../lib/hardhat_contracts.json'
-import { useEthers } from '@usedapp/core'
+import { useEthers, Mumbai, Polygon } from '@usedapp/core'
+const networks = {
+    "31337": "localhost",
+    "80001": "mumbai",
+    "137": "polygon"
+}
 export default function CovalentTest() {
     const [data, setData] = useState(null)
     const [decodedEventGrantAccess, setDecodedEventGrantAccess] = useState([])
@@ -16,26 +21,80 @@ export default function CovalentTest() {
     const [endingBlock, setEndingBlock] = useState('latest')
     const [selectedEvent, setSelectedEvent] = useState('')
 
+    const [web3Available, setWeb3Available] = useState(false)
+    const { chainId, switchNetwork } = useEthers()
+
     useEffect(() => {
-        initEventData()
-        console.log(contractAddress)
-        console.log('start retrieving data from covalent ...')
-        async function getLatestBlock() {
-            const key = process.env.NEXT_PUBLIC_COVALENT_KEY
-            const result = await fetch('https://api.covalenthq.com/v1/80001/block_v2/latest/?quote-currency=USD&format=JSON&key=' + key)
-                .then(res => res.json())
-                .then(data => {
 
-                    return data
+
+        async function initContract() {
+            const test = checkChain()
+            if (test) {
+                setWeb3Available(true)
+                let arr = []
+                setContractAddress(ABIs[chainId][networks[chainId]].contracts.ElectronicHealthLink.address)
+                ABIs[chainId][networks[chainId]].contracts.ElectronicHealthLink.abi.map((item, i) => {
+                    if (item.type == 'event') {
+                        let str = ''
+                        item.inputs.map((jtem, j) => {
+                            if (j < item.inputs.length - 1) {
+                                str += jtem.type + ','
+                            }
+                            else {
+                                str += jtem.type
+                            }
+                        })
+                        let eventTopicName = item.name + '(' + str + ')'
+                        const eventTopicNameEncoded = utils.keccak256(utils.toUtf8Bytes(eventTopicName))
+                        let eventTopicNameConversion = {
+                            name: item.name,
+                            inputs: item.inputs,
+                            eventTopicNameEncoded,
+                            eventTopicName,
+                        }
+                        arr.push(eventTopicNameConversion)
+                    }
                 })
+                setEventData(arr)
+                console.log(arr)
 
-            console.log(result.data.items[0].height)
-            setEndingBlock(result.data.items[0].height)
+
+            } else {
+                setWeb3Available(false)
+            }
+
 
         }
+        if (chainId && library) {
+            initContract()
+        }
 
-       // getLatestBlock()
-    }, [])
+
+    }, [chainId, library])
+
+    const switchMumbai = async () => {
+        if (chainId !== Mumbai.chainId) {
+            await switchNetwork(Mumbai.chainId)
+        }
+    }
+
+    const switchPolygon = async () => {
+        if (chainId !== Polygon.chainId) {
+            await switchNetwork(Polygon.chainId)
+        }
+    }
+
+
+    function checkChain() {
+
+        if (chainId == 80001 || chainId == 31337 || chainId == 137) {
+            return true
+        }
+        else {
+            return false
+        }
+
+    }
 
     async function getSignerAddress() {
         const signer = library?.getSigner()
@@ -128,27 +187,26 @@ export default function CovalentTest() {
                         index = i
                     }
                 });
-               // console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
+                // console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
                 if (String(item.raw_log_topics[0]) == eventData[index].eventTopicNameEncoded) {
                     const doctor = utils.defaultAbiCoder.decode(['address'], item.raw_log_topics[1])
                     const decoded = utils.defaultAbiCoder.decode(['uint256', 'uint256', 'uint256[]', 'address'], item.raw_log_data)
-                    if (signerAddr == String(decoded[3]))
-                      {
-                    let contractEvent = {
-                        block_height: String(item.block_height),
-                        block_signed_at: String(item.block_signed_at),
-                        tx_hash: String(item.tx_hash),
+                    if (signerAddr == String(decoded[3])) {
+                        let contractEvent = {
+                            block_height: String(item.block_height),
+                            block_signed_at: String(item.block_signed_at),
+                            tx_hash: String(item.tx_hash),
 
-                        patient: String(decoded[3]),
-                        topic: String(item.raw_log_topics[0]),
-                        grantAddress: String(doctor),
-                        start: String(decoded[0]),
-                        end: String(decoded[1]),
-                        documentTypes: String(decoded[2])
+                            patient: String(decoded[3]),
+                            topic: String(item.raw_log_topics[0]),
+                            grantAddress: String(doctor),
+                            start: String(decoded[0]),
+                            end: String(decoded[1]),
+                            documentTypes: String(decoded[2])
+                        }
+                        arr.push(contractEvent)
+                        // console.log(decoded)
                     }
-                    arr.push(contractEvent)
-                    // console.log(decoded)
-                     }
                 }
             }
         )
@@ -165,30 +223,29 @@ export default function CovalentTest() {
                         index = i
                     }
                 });
-               // console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
+                // console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
                 if (String(item.raw_log_topics[0]) == eventData[index].eventTopicNameEncoded) {
                     const patient = utils.defaultAbiCoder.decode(['address'], item.raw_log_topics[1])
                     //const ipfsLink = utils.defaultAbiCoder.decode(['uint'], item.raw_log_topics[2])
                     const doctor = utils.defaultAbiCoder.decode(['address'], item.raw_log_topics[2])
                     const decoded = utils.defaultAbiCoder.decode(['uint256', 'string'], item.raw_log_data)
                     // console.log('ipfslink', ipfsLink)
-                      if (signerAddr == String(patient))
-                      {
-                    let contractEvent = {
-                        block_height: String(item.block_height),
-                        block_signed_at: String(item.block_signed_at),
-                        tx_hash: String(item.tx_hash),
-                        patient: String(patient),
-                        doctor: String(doctor),
-                        docType: String(decoded[0]),
-                        topic: String(item.raw_log_topics[0]),
-                        ipfsLink: String(decoded[1]),
+                    if (signerAddr == String(patient)) {
+                        let contractEvent = {
+                            block_height: String(item.block_height),
+                            block_signed_at: String(item.block_signed_at),
+                            tx_hash: String(item.tx_hash),
+                            patient: String(patient),
+                            doctor: String(doctor),
+                            docType: String(decoded[0]),
+                            topic: String(item.raw_log_topics[0]),
+                            ipfsLink: String(decoded[1]),
 
 
+                        }
+                        arr.push(contractEvent)
+                        // console.log(decoded)
                     }
-                    arr.push(contractEvent)
-                    // console.log(decoded)
-                     }
                 }
             }
         )
@@ -205,23 +262,22 @@ export default function CovalentTest() {
                         index = i
                     }
                 });
-              //  console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
+                //  console.log(index, String(item.raw_log_topics[0]), eventData[index].eventTopicNameEncoded)
                 if (String(item.raw_log_topics[0]) == eventData[index].eventTopicNameEncoded) {
                     const doctor = utils.defaultAbiCoder.decode(['address'], item.raw_log_topics[1])
                     const decoded = utils.defaultAbiCoder.decode(['address'], item.raw_log_data)
-                      if (signerAddr == String(decoded[0]))
-                      {
-                    let contractEvent = {
-                        block_height: String(item.block_height),
-                        block_signed_at: String(item.block_signed_at),
-                        tx_hash: String(item.tx_hash),
-                       patient: String(decoded[0]),
-                        topic: String(item.raw_log_topics[0]),
-                        revokeAddress: String(doctor),
+                    if (signerAddr == String(decoded[0])) {
+                        let contractEvent = {
+                            block_height: String(item.block_height),
+                            block_signed_at: String(item.block_signed_at),
+                            tx_hash: String(item.tx_hash),
+                            patient: String(decoded[0]),
+                            topic: String(item.raw_log_topics[0]),
+                            revokeAddress: String(doctor),
 
 
-                    }
-                    arr.push(contractEvent)
+                        }
+                        arr.push(contractEvent)
                     }
                 }
             }
@@ -234,102 +290,125 @@ export default function CovalentTest() {
         console.log(e.target.value)
         setSelectedEvent(e.target.value)
     }
-    return (<>
-        <Layout>
+    if (web3Available) {
+        return (<>
+            <Layout>
+                <Box
+                    d='flex'
+                    flexDirection='column'
+                    alignItems='center'
+                >
+                    <Heading as="h1">Patient counters</Heading>
+                    <HStack m='3' p='1'>
+
+                        <Select onChange={handleSelectedEvent} placeholder='Select option'>
+                            {
+                                eventData.map((item, i) => {
+
+                                    return <option key={i} value={item.name}>{item.name} - {item.eventTopicNameEncoded}</option>
+                                })
+
+                            }
+
+
+                        </Select>
+                        <Button variant='solid' m='1' p='5' onClick={()=>{downloadEventLog();downloadEventLog()}}> download </Button>
+                    </HStack>
+
+
+                    {
+                        (selectedEvent == 'GrantAccess' && decodedEventGrantAccess) && decodedEventGrantAccess.map((item, i) => {
+                            return (< div key={i}>
+                                <Divider my='1'></Divider>
+                                <Text>Topic : {item.topic}</Text>
+                                <Text>Patient: {item.patient}</Text>
+                                <Text>Allows grants to  doctor  : {item.grantAddress}</Text>
+                                <Text>Start Block Grant : {item.start}</Text>
+                                <Text>End Block Grant :{item.end}</Text>
+                                <Text>Doc Types:{item.documentTypes}</Text>
+                                <Text>Block: {item.block_height}</Text>
+                                <Text>Signed at : {item.block_signed_at}</Text>
+                                <Text>Tx Hash : {item.tx_hash}</Text>
+                            </div>
+                            )
+                        })
+                    }
+                    {
+                        (selectedEvent == 'RevokeAccess' && decodedEventRevokeAccess) && decodedEventRevokeAccess.map((item, i) => {
+
+                            return (< div key={i}>
+                                <Divider my='1'></Divider>
+                                <Text>Topic : {item.topic}</Text>
+                                <Text>Patient : {item.patient}</Text>
+                                <Text>Revoke grants to  doctor  : {item.revokeAddress}</Text>
+
+                                <Text>Block: {item.block_height}</Text>
+                                <Text>Signed at : {item.block_signed_at}</Text>
+                                <Text>Tx Hash : {item.tx_hash}</Text>
+
+
+
+                            </div>
+                            )
+                        })
+                    }
+                    {
+                        (selectedEvent == 'PushDocument' && decodedEventPushDocument) && decodedEventPushDocument.map((item, i) => {
+
+                            return (< div key={i}>
+                                <Divider my='1'></Divider>
+                                <Text>Topic : {item.topic}</Text>
+
+
+
+                                <Text>Block: {item.block_height}</Text>
+                                <Text>Signed at : {item.block_signed_at}</Text>
+                                <Text>Tx Hash : {item.tx_hash}</Text>
+                                <Text>Patient: {item.patient}</Text>
+                                <Text>Doctor: {item.doctor}</Text>
+                                <Text>docType: {item.docType}</Text>
+                                <Text>ipfsLink: {item.ipfsLink}</Text>
+
+
+                                {
+                                    /*
+                                       block_height: String(item.block_height),
+                                                        block_signed_at: String(item.block_signed_at),
+                                                        tx_hash: String(item.tx_hash),
+                                                        patient: String(patient),
+                                                        doctor : String(decoded[1]),
+                                                        docType:String(decoded[0]),
+                                                        topic: String(item.raw_log_topics[0]),
+                                                        ipfsLink:String(ipfsLink),
+                                    */
+                                }
+
+                            </div>
+                            )
+                        })
+                    }
+                </Box>
+            </Layout>
+        </>)
+
+    } else {
+        return (
+
+            <Layout>
             <Box
                 d='flex'
                 flexDirection='column'
                 alignItems='center'
+
             >
-                <HStack m='3' p='1'>
 
-                    <Select onChange={handleSelectedEvent} placeholder='Select option'>
-                        {
-                            eventData.map((item, i) => {
-
-                                return <option key={i} value={item.name}>{item.name} - {item.eventTopicNameEncoded}</option>
-                            })
-
-                        }
-
-
-                    </Select>
-                    <Button variant='solid' m='1' p='5' onClick={downloadEventLog}> download </Button>
-                </HStack>
-
-
-                {
-                    (selectedEvent == 'GrantAccess' && decodedEventGrantAccess) && decodedEventGrantAccess.map((item, i) => {
-                        return (< div key={i}>
-                            <Divider my='1'></Divider>
-                            <Text>Topic : {item.topic}</Text>
-                            <Text>Patient: {item.patient}</Text>
-                            <Text>Allows grants to  doctor  : {item.grantAddress}</Text>
-                            <Text>Start Block Grant : {item.start}</Text>
-                            <Text>End Block Grant :{item.end}</Text>
-                            <Text>Doc Types:{item.documentTypes}</Text>
-                            <Text>Block: {item.block_height}</Text>
-                            <Text>Signed at : {item.block_signed_at}</Text>
-                            <Text>Tx Hash : {item.tx_hash}</Text>
-                        </div>
-                        )
-                    })
-                }
-                {
-                    (selectedEvent == 'RevokeAccess' && decodedEventRevokeAccess) && decodedEventRevokeAccess.map((item, i) => {
-
-                        return (< div key={i}>
-                            <Divider my='1'></Divider>
-                            <Text>Topic : {item.topic}</Text>
-                            <Text>Patient : {item.patient}</Text>
-                            <Text>Revoke grants to  doctor  : {item.revokeAddress}</Text>
-
-                            <Text>Block: {item.block_height}</Text>
-                            <Text>Signed at : {item.block_signed_at}</Text>
-                            <Text>Tx Hash : {item.tx_hash}</Text>
-
-
-
-                        </div>
-                        )
-                    })
-                }
-                {
-                    (selectedEvent == 'PushDocument' && decodedEventPushDocument) && decodedEventPushDocument.map((item, i) => {
-
-                        return (< div key={i}>
-                            <Divider my='1'></Divider>
-                            <Text>Topic : {item.topic}</Text>
-
-
-
-                            <Text>Block: {item.block_height}</Text>
-                            <Text>Signed at : {item.block_signed_at}</Text>
-                            <Text>Tx Hash : {item.tx_hash}</Text>
-                            <Text>Patient: {item.patient}</Text>
-                            <Text>Doctor: {item.doctor}</Text>
-                            <Text>docType: {item.docType}</Text>
-                            <Text>ipfsLink: {item.ipfsLink}</Text>
-
-
-                            {
-                                /*
-                                   block_height: String(item.block_height),
-                                                    block_signed_at: String(item.block_signed_at),
-                                                    tx_hash: String(item.tx_hash),
-                                                    patient: String(patient),
-                                                    doctor : String(decoded[1]),
-                                                    docType:String(decoded[0]),
-                                                    topic: String(item.raw_log_topics[0]),
-                                                    ipfsLink:String(ipfsLink),
-                                */
-                            }
-
-                        </div>
-                        )
-                    })
-                }
+                <Text>Chain id not supported</Text>
+                <Button onClick={switchMumbai}> change to mumbai</Button>
+                <Button onClick={switchPolygon}> change to polygon</Button>
             </Box>
-        </Layout>
-    </>)
+            </Layout>
+
+        )
+
+    }
 }

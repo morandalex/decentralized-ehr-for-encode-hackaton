@@ -21,7 +21,7 @@ import {
 } from "@chakra-ui/react";
 import TablePaginated from "./TablePaginated";
 import MultiSelectMenu from '../multiple-select'
-import { useEthers } from '@usedapp/core'
+import { useEthers, Mumbai, Polygon } from '@usedapp/core'
 import { ethers, utils } from 'ethers'
 import LitJsSdk from 'lit-js-sdk'
 import { toString as uint8arrayToString } from "uint8arrays/to-string";
@@ -48,7 +48,7 @@ export default function Patient() {
   const [yourBalance, setYourBalance] = useState("");
   const [litSelectedChain, setLitSelectedChain] = useState('');
 
-  const { library, chainId, account } = useEthers();
+  const { library, chainId, account, switchNetwork } = useEthers();
   const router = useRouter()
 
   const [cond, setCond] = useState(false);
@@ -76,31 +76,51 @@ export default function Patient() {
   }, [])
 
 
+
+  const [web3Available, setWeb3Available] = useState(false)
+
+
   useEffect(() => {
 
 
-    function initContract() {
+    async function initContract() {
+      const test = checkChain()
+      if (test) {
+        setWeb3Available(true)
+        const abi = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].abi
+        const address = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].address
 
-
-      const abi = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].abi
-      const address = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].address
-
-      setContractAbi(abi)
-      setContractAddress(address)
-      console.log(contractAbi)
-      console.log(contractAddress)
+        setContractAbi(abi)
+        setContractAddress(address)
+        console.log(contractAbi)
+        console.log(contractAddress)
+      } else {
+        setWeb3Available(false)
+      }
 
 
     }
-    if (chainId) {
+    if (chainId && library) {
       initContract()
-      setLitSelectedChain(networks[chainId])
     }
 
 
-  }, [chainId])
+  }, [chainId, library])
 
-  const checkChain = () => {
+  const switchMumbai = async () => {
+    if (chainId !== Mumbai.chainId) {
+      await switchNetwork(Mumbai.chainId)
+    }
+  }
+
+  const switchPolygon = async () => {
+    if (chainId !== Polygon.chainId) {
+      await switchNetwork(Polygon.chainId)
+    }
+  }
+
+
+  function checkChain() {
 
     if (chainId == 80001 || chainId == 31337 || chainId == 137) {
       return true
@@ -225,96 +245,96 @@ export default function Patient() {
 
 
   const decrypt = async (ipfsHash: string, encryptedSymmetricKey: string) => {
-    if (selectedDocType.length==1){
+    if (selectedDocType.length == 1) {
 
-      console.log('PARAMETERS',[account, doctorAddressInput, selectedDocType[0]])
-    console.log('encrypted symmetric key', encryptedSymmetricKey)
-    console.log('ipfs hash', ipfsHash)
-    console.log('patient address input', account)
-    console.log('doctor address input', doctorAddressInput)
-    const chain = litSelectedChain;
-   
-    const evmContractConditions = [
-      {
+      console.log('PARAMETERS', [account, doctorAddressInput, selectedDocType[0]])
+      console.log('encrypted symmetric key', encryptedSymmetricKey)
+      console.log('ipfs hash', ipfsHash)
+      console.log('patient address input', account)
+      console.log('doctor address input', doctorAddressInput)
+      const chain = litSelectedChain;
 
-        contractAddress: contractAddress,
-        functionName: "checkAccess",
-        functionParams: [account, doctorAddressInput, selectedDocType[0]],
-        functionAbi: {
-          inputs: [
+      const evmContractConditions = [
+        {
+
+          contractAddress: contractAddress,
+          functionName: "checkAccess",
+          functionParams: [account, doctorAddressInput, selectedDocType[0]],
+          functionAbi: {
+            inputs: [
               {
-                  internalType: "address",
-                  name: "_patient",
-                  type: "address",
+                internalType: "address",
+                name: "_patient",
+                type: "address",
               },
               {
-                  internalType: "address",
-                  name: "_doctor",
-                  type: "address",
+                internalType: "address",
+                name: "_doctor",
+                type: "address",
               },
               {
-                  internalType: "uint256",
-                  name: "_documentType",
-                  type: "uint256",
+                internalType: "uint256",
+                name: "_documentType",
+                type: "uint256",
               },
-          ],
-          name: "checkAccess",
-          outputs: [
+            ],
+            name: "checkAccess",
+            outputs: [
               {
-                  internalType: "bool",
-                  name: "",
-                  type: "bool",
+                internalType: "bool",
+                name: "",
+                type: "bool",
               },
-          ],
-          stateMutability: "view",
-          type: "function",
-      },
-      chain: chain,
-      returnValueTest: {
-          key: "",
-          comparator: "=",
-          value: "true",
-      },
-      },
-    ];
+            ],
+            stateMutability: "view",
+            type: "function",
+          },
+          chain: chain,
+          returnValueTest: {
+            key: "",
+            comparator: "=",
+            value: "true",
+          },
+        },
+      ];
 
-    //console.log('litSelectedchain--------->', litSelectedChain)
-    const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: chain })
-
-
-    //console.log(authSig)
-    const check = uint8arrayFromString(
-      encryptedSymmetricKey,
-      "base64"
-    );
-
-    // console.log('---------->symmetricKey base 16', LitJsSdk.uint8arrayToString(check, "base16"))
-    //@ts-ignore
-    const symmetricKey = await window.litNodeClient.getEncryptionKey({
-      evmContractConditions,
-      // Note, below we convert the encryptedSymmetricKey from a UInt8Array to a hex string.  This is because we obtained the encryptedSymmetricKey from "saveEncryptionKey" which returns a UInt8Array.  But the getEncryptionKey method expects a hex string.
-      toDecrypt: LitJsSdk.uint8arrayToString(check, "base16"),
-      chain,
-      authSig
-    })
-    // console.log('---------->symmetricKey', symmetricKey)
-    let str = await fetch('https://ipfs.io/ipfs/' + ipfsHash).then(r => r.text());
-    // console.log(str)
-    const arrayBuffer = uint8arrayFromString(
-      str,
-      "base64"
-    ).buffer;
-    const blob = new Blob([arrayBuffer])
+      //console.log('litSelectedchain--------->', litSelectedChain)
+      const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: chain })
 
 
-    const decryptedString = await LitJsSdk.decryptString(
-      blob,
-      symmetricKey
-    );
+      //console.log(authSig)
+      const check = uint8arrayFromString(
+        encryptedSymmetricKey,
+        "base64"
+      );
 
-    // console.log('-------->decryptedString', decryptedString);
+      // console.log('---------->symmetricKey base 16', LitJsSdk.uint8arrayToString(check, "base16"))
+      //@ts-ignore
+      const symmetricKey = await window.litNodeClient.getEncryptionKey({
+        evmContractConditions,
+        // Note, below we convert the encryptedSymmetricKey from a UInt8Array to a hex string.  This is because we obtained the encryptedSymmetricKey from "saveEncryptionKey" which returns a UInt8Array.  But the getEncryptionKey method expects a hex string.
+        toDecrypt: LitJsSdk.uint8arrayToString(check, "base16"),
+        chain,
+        authSig
+      })
+      // console.log('---------->symmetricKey', symmetricKey)
+      let str = await fetch('https://ipfs.io/ipfs/' + ipfsHash).then(r => r.text());
+      // console.log(str)
+      const arrayBuffer = uint8arrayFromString(
+        str,
+        "base64"
+      ).buffer;
+      const blob = new Blob([arrayBuffer])
 
-    return decryptedString
+
+      const decryptedString = await LitJsSdk.decryptString(
+        blob,
+        symmetricKey
+      );
+
+      // console.log('-------->decryptedString', decryptedString);
+
+      return decryptedString
 
 
     }
@@ -328,24 +348,23 @@ export default function Patient() {
     console.log("doctorAddressInput: ", doctorAddressInput);
     console.log("selectedDocType: ", selectedDocType);
 
-if(selectedDocType.length == 1){
-  try {
-    const result = await readContract('checkAccess', [
-      account,
-      doctorAddressInput,
-      selectedDocType[0]
-    ]
-    );
-    console.log(result);
-    setAccessCheck(result);
-  } catch (e: any) {
+    if (selectedDocType.length == 1) {
+      try {
+        const result = await readContract('checkAccess', [
+          account,
+          doctorAddressInput,
+          selectedDocType[0]
+        ]
+        );
+        console.log(result);
+        setAccessCheck(result);
+      } catch (e: any) {
 
-  }
-} else 
-{
-alert('Please select only one doc type')
+      }
+    } else {
+      alert('Please select only one doc type')
 
-}
+    }
 
 
   }
@@ -357,11 +376,11 @@ alert('Please select only one doc type')
     console.log("selectedType: ", selectedDocType);
 
     try {
-//      let typesArr = [];
-      
-  //    typesArr.push(parseInt(selectedDocType));
+      //      let typesArr = [];
 
-    //  console.log(typesArr);
+      //    typesArr.push(parseInt(selectedDocType));
+
+      //  console.log(typesArr);
       await writeContract('grantAccess', [
         doctorAddressInput,
         parseInt(startingTime),
@@ -388,35 +407,40 @@ alert('Please select only one doc type')
 
   }
   async function getDocumentsFromGrantFun() {
-    console.log("started getDocumentsFromGrant function");
-    console.log("patient address: ", account);
-    setDocs([])
+    if (selectedDocType.length == 1) {
+
+      console.log("started getDocumentsFromGrant function");
+      console.log("patient address: ", account);
+      setDocs([])
 
 
 
-    try {
-      const result: any = await readContract('getDocumentsAll', [account])
+      try {
+        const result: any = await readContract('getDocumentsAll', [account])
 
 
-      let arr: any = [];
-      result.map((item: any) => {
-        if (item.doctor == doctorAddressInput && item.documentType.toString() == selectedDocType)
-          arr.push({
-            createdAt: item.createdAt.toString(),
-            documentType: item.documentType.toString(),
-            ipfsLink: item.ipfsLink,
-            patient: item.patient,
-            encryptedSymmetricKey: item.encryptedSymmetricKey,
-            doctor: item.doctor
-          });
-      });
+        let arr: any = [];
+        result.map((item: any) => {
+          if (item.doctor == doctorAddressInput && item.documentType.toString() == selectedDocType)
+            arr.push({
+              createdAt: item.createdAt.toString(),
+              documentType: item.documentType.toString(),
+              ipfsLink: item.ipfsLink,
+              patient: item.patient,
+              encryptedSymmetricKey: item.encryptedSymmetricKey,
+              doctor: item.doctor
+            });
+        });
 
-      console.log('arrayGenerated', arr);
-      setDocs(arr);
-    } catch (e: any) {
+        console.log('arrayGenerated', arr);
+        setDocs(arr);
+      } catch (e: any) {
 
-    }
+      }
 
+
+
+    } else { alert('select only one document type') }
   }
 
   const handleAddressDoctorString = (e: ChangeEvent<HTMLInputElement>) => {
@@ -438,116 +462,112 @@ alert('Please select only one doc type')
   function handleBackClick() {
     router.push('/')
   }
+  if (web3Available) {
+    return (
+      <Box
+        alignItems="center"
+        justifyContent="center"
+        display="flex"
+        flexDirection="column"
+        textAlign="center"
+        p="2"
+      >
+        <Heading as="h1">Patient page</Heading>
+        <Box m="2" p="3" border="1px" borderRadius="16">
+          <FormControl>
+            <FormLabel>Doctor Address</FormLabel>
+            <Input
+              value={doctorAddressInput}
+              onChange={handleAddressDoctorString}
+            ></Input>
+            <FormLabel mt={5}>Type of document</FormLabel>
+            {
+              /*
+  
+                      <Select
+                        id="country"
+                        placeholder="Select type"
+                        mb={5}
+                        //@ts-ignore
+                        onChange={handleSelectedType}
+                      >
+                        <option value="1">Medical doc type 1</option>
+                        <option value="2">Medical doc type 2</option>
+                        <option value="3">Medical doc type 3</option>
+                      </Select>
+            */
+            }
+            <HStack>
+              <MultiSelectMenu setSelectedDocType={setSelectedDocType} label="Health docs list" options={["1", "2", "3"]} optionLabels={["1- reports of examinations", "2 - specialist and pharmaceutical prescriptions;", "3 - summary health profile "]} />
+              <Text>{JSON.stringify(selectedDocType)}</Text>
+            </HStack>
+            <FormLabel>Starting Time</FormLabel>
+            <Input value={startingTime} onChange={handleStartingTime}></Input>
+            <FormLabel>Ending Time</FormLabel>
+            <Input value={endingTime} onChange={handleEndingTime}></Input>
 
-  return (
-    <Box
-      alignItems="center"
-      justifyContent="center"
-      display="flex"
-      flexDirection="column"
-      textAlign="center"
-      p="2"
-    >
-      <Heading as="h1">Patient page</Heading>
-      <Box m="2" p="3" border="1px" borderRadius="16">
-        <FormControl>
-          <FormLabel>Doctor Address</FormLabel>
-          <Input
-            value={doctorAddressInput}
-            onChange={handleAddressDoctorString}
-          ></Input>
-          <FormLabel mt={5}>Type of document</FormLabel>
-          {
-            /*
+            <HStack>
+              <Button colorScheme="teal" m="2" onClick={() => grantAccessFun()}>
+                Grant Access
+              </Button>
+              <Button colorScheme="teal" m="2" onClick={() => revokeAccessFun()}>
+                Revoke Access
+              </Button>
+            </HStack>
+          </FormControl>
 
-                    <Select
-                      id="country"
-                      placeholder="Select type"
-                      mb={5}
-                      //@ts-ignore
-                      onChange={handleSelectedType}
-                    >
-                      <option value="1">Medical doc type 1</option>
-                      <option value="2">Medical doc type 2</option>
-                      <option value="3">Medical doc type 3</option>
-                    </Select>
-          */
-          }
           <HStack>
-            <MultiSelectMenu setSelectedDocType={setSelectedDocType} label="Health docs list" options={["1", "2", "3"]} optionLabels={["1- reports of examinations", "2 - specialist and pharmaceutical prescriptions;", "3 - summary health profile "]} />
-            <Text>{JSON.stringify(selectedDocType)}</Text>
-          </HStack>
-          <FormLabel>Starting Time</FormLabel>
-          <Input value={startingTime} onChange={handleStartingTime}></Input>
-          <FormLabel>Ending Time</FormLabel>
-          <Input value={endingTime} onChange={handleEndingTime}></Input>
-
-          <HStack>
-            <Button colorScheme="teal" m="2" onClick={() => grantAccessFun()}>
-              Grant Access
+            <Button colorScheme="teal" m="2" onClick={() => checkAccessFun()}>
+              {" "}
+              Check if  authorized
             </Button>
-            <Button colorScheme="teal" m="2" onClick={() => revokeAccessFun()}>
-              Revoke Access
-            </Button>
+
+            <Text m="2">
+              {accessCheck ? (
+                <>The doctor provided is authorized</>
+              ) : (
+                <>
+                  The doctor provided is <b>NOT</b> authorized
+                </>
+              )}
+            </Text>
           </HStack>
-        </FormControl>
-
-        <HStack>
-          <Button colorScheme="teal" m="2" onClick={() => checkAccessFun()}>
-            {" "}
-            Check if  authorized
-          </Button>
-
-          <Text m="2">
-            {accessCheck ? (
-              <>The doctor provided is authorized</>
-            ) : (
-              <>
-                The doctor provided is <b>NOT</b> authorized
-              </>
-            )}
-          </Text>
-        </HStack>
-      </Box>
-      <Box m="2" p="3" border="1px" borderRadius="16">
-        <FormControl>
-          <FormLabel>Doctor Address</FormLabel>
-          <Input
-            value={doctorAddressInput}
-            onChange={handleAddressDoctorString}
-          ></Input>
-          <FormLabel mt={5}>Type of document</FormLabel>
-{/*
-          <Select
-            id="country"
-            placeholder="Select type"
-            mb={5}
-            //@ts-ignore
-            onChange={handleSelectedDocType}
-          >
-            <option value="1">Medical doc type 1</option>
-            <option value="2">Medical doc type 2</option>
-            <option value="3">Medical doc type 3</option>
-          </Select>
-          */
-}
           <Button colorScheme="teal" onClick={() => getDocumentsFromGrantFun()}>
             getDocumentsFromGrantFun()
           </Button>
-        </FormControl>
+        </Box>
+
+
+        <Box m="2" p="3" border="1px" borderRadius="16">
+          <TablePaginated table={docs} decrypt={decrypt} />
+
+        </Box>
+
+        <Button colorScheme='teal' variant='outline' onClick={handleBackClick}>
+          Back
+        </Button>
+
+      </Box>
+    )
+  } else {
+    return (
+
+
+      <Box
+        d='flex'
+        flexDirection='column'
+        alignItems='center'
+
+      >
+      
+        <Text>Chain id not supported</Text>
+        <Button onClick={switchMumbai}> change to mumbai</Button>
+        <Button onClick={switchPolygon}> change to polygon</Button>
       </Box>
 
-      <Box m="2" p="3" border="1px" borderRadius="16">
-        <TablePaginated table={docs} decrypt={decrypt} />
+    )
 
-      </Box>
-
-      <Button colorScheme='teal' variant='outline' onClick={handleBackClick}>
-        Back
-      </Button>
-
-    </Box>
-  )
+  }
 
 }
 

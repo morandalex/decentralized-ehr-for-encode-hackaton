@@ -11,7 +11,7 @@ import {
     Text,
     Spinner
 } from '@chakra-ui/react'
-import { useEthers } from '@usedapp/core'
+import { useEthers ,Mumbai,Polygon} from '@usedapp/core'
 import { utils } from 'ethers'
 import { useReducer } from 'react'
 import Layout from '../components/layout/Layout'
@@ -33,7 +33,7 @@ const networks = {
 
 
 function SignatureExampleIndex(): JSX.Element {
-    const { library, chainId } = useEthers();
+    const { library, chainId,switchNetwork } = useEthers();
     const [cond, setCond] = useState(false);
     const [loading, setLoading] = useState(false);
     const [chain, setChain] = useState('mumbai')
@@ -43,35 +43,52 @@ function SignatureExampleIndex(): JSX.Element {
     const [symEncrypted, setSymEncrypted] = useState('')
     const [contractAbi, setContractAbi] = useState([])
 
+    const [web3Available, setWeb3Available] = useState(false)
 
 
     useEffect(() => {
 
 
-        function initContract() {
+       async  function initContract() {
+        const test = checkChain () 
+            if (test) {
+                setWeb3Available(true)
+                const abi = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].abi
+                const address = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].address
 
-
-            const abi = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].abi
-            const address = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].address
-
-            setContractAbi(abi)
-            setContractAddress(address)
-            console.log(contractAbi)
-            console.log(contractAddress)
+                setContractAbi(abi)
+                setContractAddress(address)
+                console.log(contractAbi)
+                console.log(contractAddress)
+            } else {
+                setWeb3Available(false)
+            }
 
 
         }
-        if (chainId) {
+        if (chainId && library) {
             initContract()
         }
 
 
-    }, [chainId])
+    }, [chainId, library])
 
+    const switchMumbai = async () => {
+        if(chainId !== Mumbai.chainId) {
+          await switchNetwork(Mumbai.chainId)
+        }
+    }
 
-    const checkChain = () => {
+    const switchPolygon = async () => {
+        if(chainId !== Polygon.chainId) {
+          await switchNetwork(Polygon.chainId)
+        }
+    }
+      
+       
+    function  checkChain  () {
 
-        if (chainId == 80001 || chainId == 31337) {
+        if (chainId == 80001 || chainId == 31337 || chainId == 137) {
             return true
         }
         else {
@@ -133,30 +150,30 @@ function SignatureExampleIndex(): JSX.Element {
                     let tx;
                     let receipt;
                     if (par.length == 0) {
-                        
+
                         tx = await c[_contractFunName]()
                         receipt = tx.wait()
-                       
+
                     }
                     if (par.length == 1) {
-                        
+
                         tx = await c[_contractFunName](par[0])
 
                     }
                     if (par.length == 2) {
-                        
+
                         tx = await c[_contractFunName](par[0], par[1])
 
                     }
                     if (par.length == 3) {
-                        
+
                         tx = await c[_contractFunName](par[0], par[1], par[2])
 
                     }
 
                     console.log(receipt)
                     setLoading(false)
-                     
+
 
                 } catch (e) {
                     console.log(e)
@@ -167,53 +184,78 @@ function SignatureExampleIndex(): JSX.Element {
                 }
 
             }
-        } else { alert('change  network') 
-       }
+        } else {
+            alert('change  network')
+        }
     }
 
     function handleStr(e) {
         setStrToBeEncrypt(e.target.value)
     }
-    return (
-        <Layout>
 
-            <Box
-                d='flex'
-                flexDirection='column'
-                alignItems='center'
+    if (web3Available) {
+        return (
+            <Layout>
 
-            >
-                <Heading as="h1" mb="12">
-                    Decentralized electronic health record dapp
-                </Heading>
+                <Box
+                    d='flex'
+                    flexDirection='column'
+                    alignItems='center'
 
-                <HStack m='2'>
-                    <Button mx='1' onClick={() => console.log(contractAbi)}>contractAbi</Button>
-                    <Button mx='1' onClick={() => console.log(contractAddress)}>contractAddress</Button>
+                >
+                    <Heading as="h1" mb="12">
+                        Decentralized electronic health record dapp
+                    </Heading>
 
-                </HStack>
+                    <HStack m='2'>
+                        <Button mx='1' onClick={() => console.log(contractAbi)}>contractAbi</Button>
+                        <Button mx='1' onClick={() => console.log(contractAddress)}>contractAddress</Button>
 
-                {
-                    /*
+                    </HStack>
+
+                    {
+                        /*
                             <Button mx='1' onClick={() => readContract('checkAccess', ['0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', 1])}>checkAccess()</Button>
-                    */
-                }
+                        */
+                    }
 
 
 
-                {contractAbi.map((item) => {
+                    {contractAbi.map((item) => {
 
-                    return <Text key={item.name}>{item.name}</Text>
-                })
+                        return <Text key={item.name}>{item.name}</Text>
+                    })
 
-                }
+                    }
 
 
 
-                {loading && (<Spinner />)}
-            </Box>
-        </Layout>
-    )
+                    {loading && (<Spinner />)}
+                </Box>
+            </Layout>
+        )
+    } else 
+    {
+        return (
+            <Layout>
+
+                <Box
+                    d='flex'
+                    flexDirection='column'
+                    alignItems='center'
+
+                >
+                    <Heading as="h1" mb="12">
+                        Decentralized electronic health record dapp
+                    </Heading>
+                    <Text>Chain id not supported</Text>
+                    <Button onClick={switchMumbai }> change to mumbai</Button>
+                    <Button onClick={switchPolygon }> change to polygon</Button>
+                    </Box>
+                    </Layout>
+        )
+
+    }
 }
 
 export default SignatureExampleIndex

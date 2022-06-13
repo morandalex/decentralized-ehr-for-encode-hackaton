@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
 import Layout from '../components/layout/Layout'
-import { Button, Box, Text, Divider, HStack, Select } from '@chakra-ui/react'
+import { Button, Heading, Box, Text, Divider, HStack, Select } from '@chakra-ui/react'
 import { utils } from 'ethers'
 import ABIs from '../lib/hardhat_contracts.json'
-import { useEthers } from '@usedapp/core'
+import { useEthers, Mumbai, Polygon } from '@usedapp/core'
+const networks = {
+    "31337": "localhost",
+    "80001": "mumbai",
+    "137": "polygon"
+}
 export default function CovalentTest() {
     const [data, setData] = useState(null)
     const [decodedEventGrantAccess, setDecodedEventGrantAccess] = useState([])
@@ -19,21 +24,88 @@ export default function CovalentTest() {
     const [grantAccessDoctorsCounter, setGrantAccessDoctorsCounter] = useState(0)
     const [documentCreated, setDocumentCreated] = useState(0)
     const [revokeAccessDoctorsCounter, setRevokeAccessDoctorsCounter] = useState(0)
+    const [web3Available, setWeb3Available] = useState(false)
+
+
+    const { chainId, switchNetwork } = useEthers()
+
+    useEffect(() => {
+
+
+        async function initContract() {
+            const test = checkChain()
+            if (test) {
+                setWeb3Available(true)
+                let arr = []
+                setContractAddress(ABIs[chainId][networks[chainId]].contracts.ElectronicHealthLink.address)
+                ABIs[chainId][networks[chainId]].contracts.ElectronicHealthLink.abi.map((item, i) => {
+                    if (item.type == 'event') {
+                        let str = ''
+                        item.inputs.map((jtem, j) => {
+                            if (j < item.inputs.length - 1) {
+                                str += jtem.type + ','
+                            }
+                            else {
+                                str += jtem.type
+                            }
+                        })
+                        let eventTopicName = item.name + '(' + str + ')'
+                        const eventTopicNameEncoded = utils.keccak256(utils.toUtf8Bytes(eventTopicName))
+                        let eventTopicNameConversion = {
+                            name: item.name,
+                            inputs: item.inputs,
+                            eventTopicNameEncoded,
+                            eventTopicName,
+                        }
+                        arr.push(eventTopicNameConversion)
+                    }
+                })
+                setEventData(arr)
+                console.log(arr)
+
+
+            } else {
+                setWeb3Available(false)
+            }
+
+
+        }
+        if (chainId && library) {
+            initContract()
+        }
+
+
+    }, [chainId, library])
+
+    const switchMumbai = async () => {
+        if (chainId !== Mumbai.chainId) {
+            await switchNetwork(Mumbai.chainId)
+        }
+    }
+
+    const switchPolygon = async () => {
+        if (chainId !== Polygon.chainId) {
+            await switchNetwork(Polygon.chainId)
+        }
+    }
+
+
+    function checkChain() {
+
+        if (chainId == 80001 || chainId == 31337 || chainId == 137) {
+            return true
+        }
+        else {
+            return false
+        }
+
+    }
     useEffect(() => {
 
 
 
 
-        async function init() {
-            await initEventData()
-            console.log('ontractAddress', contractAddress)
-            console.log('start retrieving data from covalent ...')
 
-
-
-        }
-
-        init()
 
         getLatestBlock()
     }, [])
@@ -153,7 +225,7 @@ export default function CovalentTest() {
         await setDecodedEventGrantAccess(arr)
 
         await countDoctorsThatReceivedDocAccessByPatients()
- 
+
     }
     async function getDecodedPushDocument(d) {
         let signerAddr = await getSignerAddress()
@@ -263,43 +335,69 @@ export default function CovalentTest() {
         console.log(doctorList.length)
         setRevokeAccessDoctorsCounter(doctorList.length);
     }
-    return (<>
-        <Layout>
+
+    if (web3Available) {
+        return (<>
+            <Layout>
+                <Box
+                    d='flex'
+                    flexDirection='column'
+                    alignItems='center'
+
+                >
+                    <Heading as="h1">Global counters</Heading>
+                    <Text>Latest covalent block : {latestBlock}</Text>
+                    <HStack m='3' p='1'>
+                        <Select onChange={handleSelectedEvent} placeholder='Select option'>
+                            {
+                                eventData.map((item, i) => {
+                                    return <option key={i} value={item.name}>{item.name} - {item.eventTopicNameEncoded}</option>
+                                })
+                            }
+                        </Select>
+                        <Button variant='solid' m='1' p='5' onClick={downloadEventLog}> download </Button>
+                    </HStack>
+                    {
+                        (selectedEvent == 'GrantAccess' && decodedEventGrantAccess) && (<>
+                            <Text> Counter of doctors  that received document access by patients : {String(grantAccessDoctorsCounter)}</Text>
+
+                        </>)
+
+                    }
+                    {
+                        (selectedEvent == 'RevokeAccess' && decodedEventRevokeAccess) && (<>
+                            <Text> Counter of doctors  that received document revoke by patients : {String(revokeAccessDoctorsCounter)}</Text>
+
+                        </>)
+                    }
+                    {
+                        (selectedEvent == 'PushDocument' && decodedEventPushDocument) && (<>
+                            <Text> Counter of total documents created : {String(documentCreated)}</Text>
+
+                        </>)
+                    }
+                </Box>
+            </Layout>
+        </>)
+
+    } else {
+        return (
+
+            <Layout>
             <Box
                 d='flex'
                 flexDirection='column'
                 alignItems='center'
-            ><Text>Latest covalent block : {latestBlock}</Text>
-                <HStack m='3' p='1'>
-                    <Select onChange={handleSelectedEvent} placeholder='Select option'>
-                        {
-                            eventData.map((item, i) => {
-                                return <option key={i} value={item.name}>{item.name} - {item.eventTopicNameEncoded}</option>
-                            })
-                        }
-                    </Select>
-                    <Button variant='solid' m='1' p='5' onClick={downloadEventLog}> download </Button>
-                </HStack>
-                {
-                    (selectedEvent == 'GrantAccess' && decodedEventGrantAccess) && (<>
-                        <Text> Counter of doctors  that received document access by patients : {String(grantAccessDoctorsCounter)}</Text>
 
-                    </>)
+            >
 
-                }
-                {
-                    (selectedEvent == 'RevokeAccess' && decodedEventRevokeAccess) && (<>
-                        <Text> Counter of doctors  that received document revoke by patients : {String(revokeAccessDoctorsCounter)}</Text>
-
-                    </>)
-                }
-                {
-                    (selectedEvent == 'PushDocument' && decodedEventPushDocument) && (<>
-                        <Text> Counter of total documents created : {String(documentCreated)}</Text>
-
-                    </>)
-                }
+                <Text>Chain id not supported</Text>
+                <Button onClick={switchMumbai}> change to mumbai</Button>
+                <Button onClick={switchPolygon}> change to polygon</Button>
             </Box>
-        </Layout>
-    </>)
+            </Layout>
+
+        )
+
+    }
 }

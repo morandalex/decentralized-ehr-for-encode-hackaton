@@ -29,7 +29,7 @@ import {
     ModalCloseButton,
 } from "@chakra-ui/react";
 import TablePaginated from "./TablePaginated";
-import { useEthers } from '@usedapp/core'
+import { useEthers, Mumbai, Polygon } from '@usedapp/core'
 import { ethers, utils } from 'ethers'
 import LitJsSdk from 'lit-js-sdk'
 import { toString as uint8arrayToString } from "uint8arrays/to-string";
@@ -84,7 +84,7 @@ export default function DoctorView() {
     const [encrypted, setEncrypted] = useState('');
 
 
-    const { library, chainId, account } = useEthers();
+    const { library, chainId, account, switchNetwork } = useEthers();
     const router = useRouter()
 
     const [cond, setCond] = useState(false);
@@ -112,33 +112,51 @@ export default function DoctorView() {
     }, [])
 
 
+    const [web3Available, setWeb3Available] = useState(false)
+
+
     useEffect(() => {
 
 
-        function initContract() {
+        async function initContract() {
+            const test = checkChain()
+            if (test) {
+                setWeb3Available(true)
+                const abi = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].abi
+                const address = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].address
 
-
-            const abi = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].abi
-            const address = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].address
-
-            setContractAbi(abi)
-            setContractAddress(address)
-            console.log(contractAbi)
-            console.log(contractAddress)
+                setContractAbi(abi)
+                setContractAddress(address)
+                console.log(contractAbi)
+                console.log(contractAddress)
+            } else {
+                setWeb3Available(false)
+            }
 
 
         }
-        if (chainId) {
+        if (chainId && library) {
             initContract()
-            setLitSelectedChain(networks[chainId])
         }
 
 
-    }, [chainId])
+    }, [chainId, library])
 
-    const checkChain = () => {
+    const switchMumbai = async () => {
+        if (chainId !== Mumbai.chainId) {
+            await switchNetwork(Mumbai.chainId)
+        }
+    }
 
-        if (chainId == 80001 || chainId == 31337 || chainId==137) {
+    const switchPolygon = async () => {
+        if (chainId !== Polygon.chainId) {
+            await switchNetwork(Polygon.chainId)
+        }
+    }
+
+    function checkChain() {
+
+        if (chainId == 80001 || chainId == 31337 || chainId == 137) {
             return true
         }
         else {
@@ -146,8 +164,6 @@ export default function DoctorView() {
         }
 
     }
-
-
     async function readContract(_contractFunName, par) {
 
 
@@ -332,13 +348,13 @@ export default function DoctorView() {
 
 
     const decrypt = async (ipfsHash: string, encryptedSymmetricKey: string) => {
-        console.log('PARAMETERS',[patientAddressInput, account, selectedType])
+        console.log('PARAMETERS', [patientAddressInput, account, selectedType])
         console.log('encrypted symmetric key', encryptedSymmetricKey)
         console.log('ipfs hash', ipfsHash)
         console.log('doctor address input', account)
         console.log('doctor address input', patientAddressInput)
         const chain = litSelectedChain;
-      
+
         const evmContractConditions =
             [
                 {
@@ -391,7 +407,7 @@ export default function DoctorView() {
             "base64"
         );
 
-       // console.log('---------->symmetricKey base 16', LitJsSdk.uint8arrayToString(check, "base16"))
+        // console.log('---------->symmetricKey base 16', LitJsSdk.uint8arrayToString(check, "base16"))
         //@ts-ignore
         const symmetricKey = await window.litNodeClient.getEncryptionKey({
             evmContractConditions,
@@ -464,60 +480,79 @@ export default function DoctorView() {
     function handleBackClick() {
         router.push('/')
     }
-
-    return (
-        <Box
-        alignItems='center'
-        justifyContent='center'
-        display='flex'
-        flexDirection='column'
-        textAlign='center'
-      >
-        <VStack>
-          <Heading as="h1">View patients records 🙎‍♂️</Heading>
-  
-  
-  
-          <FormControl>
-            <FormLabel htmlFor="email">Patient Address</FormLabel>
-            <Input value={patientAddressInput} onChange={handleAddressPatientString}></Input>
-            <FormHelperText>We'll never share this address</FormHelperText>
-            <Select
-              id="country"
-              placeholder="Select type"
-              mb={5}
-              //@ts-ignore
-              onChange={handleSelectedType}
+    if (web3Available) {
+        return (
+            <Box
+                alignItems='center'
+                justifyContent='center'
+                display='flex'
+                flexDirection='column'
+                textAlign='center'
             >
-              <option value="1">Medical doc type 1</option>
-              <option value="2">Medical doc type 2</option>
-              <option value="3">Medical doc type 3</option>
-            </Select>
-          </FormControl>
-          <Box
-            alignItems='center'
-            justifyContent='center'
-            display='flex'
-            flexDirection='column'
-            textAlign='center'
-          >
-  
-            <Button colorScheme="teal" size="lg" mt={5} m='2' onClick={() => getDocumentsFromGrantFun()}> Load Records </Button>
-  
-  
-           <TablePaginated table={docs} decrypt={decrypt} />
+                <VStack>
+                    <Heading as="h1">View patients records 🙎‍♂️</Heading>
 
-          </Box>
-        </VStack>
-       {/*
+
+
+                    <FormControl>
+                        <FormLabel htmlFor="email">Patient Address</FormLabel>
+                        <Input value={patientAddressInput} onChange={handleAddressPatientString}></Input>
+                        <FormHelperText>We'll never share this address</FormHelperText>
+                        <Select
+                            id="country"
+                            placeholder="Select type"
+                            mb={5}
+                            //@ts-ignore
+                            onChange={handleSelectedType}
+                        >
+                            <option value="1">Medical doc type 1</option>
+                            <option value="2">Medical doc type 2</option>
+                            <option value="3">Medical doc type 3</option>
+                        </Select>
+                    </FormControl>
+                    <Box
+                        alignItems='center'
+                        justifyContent='center'
+                        display='flex'
+                        flexDirection='column'
+                        textAlign='center'
+                    >
+
+                        <Button colorScheme="teal" size="lg" mt={5} m='2' onClick={() => getDocumentsFromGrantFun()}> Load Records </Button>
+
+
+                        <TablePaginated table={docs} decrypt={decrypt} />
+
+                    </Box>
+                </VStack>
+                {/*
         <Button colorScheme='teal' mt='10px' variant='outline' onClick={handleBackClick}>
           Back
         </Button>
       */}
-  
-  
-      </Box>
-    )
+
+
+            </Box>
+        )
+    } else {
+        return (
+
+
+            <Box
+                d='flex'
+                flexDirection='column'
+                alignItems='center'
+
+            >
+               
+                <Text>Chain id not supported</Text>
+                <Button onClick={switchMumbai}> change to mumbai</Button>
+                <Button onClick={switchPolygon}> change to polygon</Button>
+            </Box>
+
+        )
+
+    }
 
 }
 
