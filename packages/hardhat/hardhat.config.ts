@@ -38,13 +38,18 @@ const getMnemonic = () => {
   }
   return '';
 };
-const { INFURA_KEY,MUMBAI_DEPLOYER_PRIVATE_KEY  } = process.env;
-let mumbaikey=''
+const { INFURA_KEY,MUMBAI_DEPLOYER_PRIVATE_KEY  ,POLYGON_DEPLOYER_PRIVATE_KEY} = process.env;
+/*let mumbaikey=''
 if(MUMBAI_DEPLOYER_PRIVATE_KEY)
 {
   mumbaikey=MUMBAI_DEPLOYER_PRIVATE_KEY 
-}
+}*/
 
+let polygonkey=''
+if(POLYGON_DEPLOYER_PRIVATE_KEY)
+{
+  polygonkey=POLYGON_DEPLOYER_PRIVATE_KEY 
+}
 
 if (!INFURA_KEY) {
   throw new Error('No value found for INFURA_KEY in .env');
@@ -104,16 +109,15 @@ const config: HardhatUserConfig = {
     },
     matic: {
       url: 'https://rpc-mainnet.maticvigil.com/',
-      gasPrice: 1000000000,
-      accounts: {
-        mnemonic: getMnemonic(),
-      },
+      gasPrice: 100000000000,
+      accounts:[polygonkey]
     },
     mumbai: {
       url: `https://polygon-mumbai.infura.io/v3/${INFURA_KEY}`,
       gasPrice: 50000000000,
-      accounts: [mumbaikey]
+      accounts: []
     },
+ 
     optimism: {
       url: `https://optimism-mainnet.infura.io/v3/${INFURA_KEY}`,
       gasPrice: 1200000000000,
