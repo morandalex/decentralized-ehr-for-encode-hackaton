@@ -427,7 +427,7 @@ export default function CovalentTest() {
 
             >
 
-                <Text>Chain id not supported</Text>
+<Text>Please connect</Text>
                 <Button onClick={switchMumbai}> change to mumbai</Button>
                 <Button onClick={switchPolygon}> change to polygon</Button>
             </Box>
