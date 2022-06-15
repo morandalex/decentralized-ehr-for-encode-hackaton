@@ -23,8 +23,8 @@ export const walletconnect = new WalletConnectConnector({
 
 export const uauth = new UAuthConnector({
   
-    clientID: "652302ea-ac5c-4b37-b400-a9b6783879fe",
-    redirectUri: "http://localhost:3000/callback",
+    clientID: process.env.NEXT_PUBLIC_CLIENT_ID,
+    redirectUri: process.env.NEXT_PUBLIC_REDIRECT_URI,
     scope: "openid wallet email:optional humanity_check:optional",
   
   /*clientID: process.env.NEXT_PUBLIC_CLIENT_ID!,

@@ -6,12 +6,13 @@
 .pnp.js
 .env
 packages/hardhat/.env
-packages/frontend/.env
+
 # misc
 .DS_Store
 *.pem
 .next
 /packages/frontend/.next/
+/packages/frontend/.env
 # debug
 npm-debug.log*
 yarn-debug.log*
@@ -44,3 +45,4 @@ packages/frontend/out/
 packages/frontend/build
 # contracts
 # packages/frontend/artifacts/*
+
