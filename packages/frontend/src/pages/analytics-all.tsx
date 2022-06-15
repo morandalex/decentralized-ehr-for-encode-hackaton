@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { useEffect, useState } from 'react'
 import Layout from '../components/layout/Layout'
-import { Button, Heading, Box, Text, Divider, HStack, Select } from '@chakra-ui/react'
+import { Button, Heading, Box, Text,  HStack, Select } from '@chakra-ui/react'
 import { utils } from 'ethers'
 import ABIs from '../lib/hardhat_contracts.json'
 import { useEthers, Mumbai, Polygon } from '@usedapp/core'
@@ -11,7 +12,7 @@ const networks = {
   }
 
 export default function CovalentTest() {
-    const [data, setData] = useState(null)
+   // const [data, setData] = useState(null)
     const [decodedEventGrantAccess, setDecodedEventGrantAccess] = useState([])
     const [decodedEventRevokeAccess, setDecodedEventRevokeAccess] = useState([])
     const [decodedEventPushDocument, setDecodedEventPushDocument] = useState([])
@@ -37,9 +38,9 @@ export default function CovalentTest() {
             const test = checkChain()
             if (test) {
                 setWeb3Available(true)
-                let arr = []
+                const arr = []
                 setContractAddress(ABIs[chainId][networks[chainId]].contracts.ElectronicHealthLink.address)
-                ABIs[chainId][networks[chainId]].contracts.ElectronicHealthLink.abi.map((item, i) => {
+                ABIs[chainId][networks[chainId]].contracts.ElectronicHealthLink.abi.map((item) => {
                     if (item.type == 'event') {
                         let str = ''
                         item.inputs.map((jtem, j) => {
@@ -50,9 +51,9 @@ export default function CovalentTest() {
                                 str += jtem.type
                             }
                         })
-                        let eventTopicName = item.name + '(' + str + ')'
+                        const eventTopicName = item.name + '(' + str + ')'
                         const eventTopicNameEncoded = utils.keccak256(utils.toUtf8Bytes(eventTopicName))
-                        let eventTopicNameConversion = {
+                        const eventTopicNameConversion = {
                             name: item.name,
                             inputs: item.inputs,
                             eventTopicNameEncoded,
@@ -62,7 +63,7 @@ export default function CovalentTest() {
                     }
                 })
                 setEventData(arr)
-                console.log(arr)
+                //console.log(arr)
 
 
             } else {
@@ -112,7 +113,7 @@ export default function CovalentTest() {
             .then(data => {
                 return data
             })
-        console.log(result)
+        //console.log(result)
 
         const latest = result.data.items[0].height
         setEndingBlock(latest)
@@ -124,34 +125,7 @@ export default function CovalentTest() {
         const signer = library?.getSigner()
         return await signer.getAddress()
     }
-    async function initEventData() {
-        let arr = []
-        setContractAddress(ABIs[chainId][networks[chainId]].contracts.ElectronicHealthLink.address)
-        ABIs[chainId][networks[chainId]].contracts.ElectronicHealthLink.abi.map((item, i) => {
-            if (item.type == 'event') {
-                let str = ''
-                item.inputs.map((jtem, j) => {
-                    if (j < item.inputs.length - 1) {
-                        str += jtem.type + ','
-                    }
-                    else {
-                        str += jtem.type
-                    }
-                })
-                let eventTopicName = item.name + '(' + str + ')'
-                const eventTopicNameEncoded = utils.keccak256(utils.toUtf8Bytes(eventTopicName))
-                let eventTopicNameConversion = {
-                    name: item.name,
-                    inputs: item.inputs,
-                    eventTopicNameEncoded,
-                    eventTopicName,
-                }
-                arr.push(eventTopicNameConversion)
-            }
-        })
-        setEventData(arr)
-        console.log(arr)
-    }
+
     async function downloadEventLog() {
 
         await getLatestBlock()
@@ -162,14 +136,14 @@ export default function CovalentTest() {
             //const startingBlock = '26639550'
             //const endingBlock = '26644057'
             const apiReq = 'https://api.covalenthq.com/v1/'+chainId+'/events/address/' + contractAddress + '/?starting-block=' + startingBlock + '&ending-block=' + endingBlock + '&key=' + key;
-            console.log(apiReq)
+          //  console.log(apiReq)
             const d = await fetch(apiReq)
                 .then(response => response.json())
                 .then(d => {
-                    setData(d);
+                  //  setData(d);
                     return d
                 })
-            console.log(d)
+          //  console.log(d)
 
 
 
@@ -188,8 +162,8 @@ export default function CovalentTest() {
         }
     }
     async function getDecodedGrantAccess(d) {
-        let signerAddr = await getSignerAddress()
-        let arr = []
+      //  const signerAddr = await getSignerAddress()
+        const arr = []
         d && d.data.items.map(
             (item) => {
                 let index = 0;
@@ -204,7 +178,7 @@ export default function CovalentTest() {
                     const decoded = utils.defaultAbiCoder.decode(['uint256', 'uint256', 'uint256[]', 'address'], item.raw_log_data)
                     //   if (signerAddr == String(addr))
                     //  {
-                    let contractEvent = {
+                    const contractEvent = {
                         block_height: String(item.block_height),
                         block_signed_at: String(item.block_signed_at),
                         tx_hash: String(item.tx_hash),
@@ -227,8 +201,8 @@ export default function CovalentTest() {
 
     }
     async function getDecodedPushDocument(d) {
-        let signerAddr = await getSignerAddress()
-        let arr = []
+        //const signerAddr = await getSignerAddress()
+        const arr = []
         d && d.data.items.map(
             (item) => {
                 let index = 0;
@@ -246,7 +220,7 @@ export default function CovalentTest() {
                     // console.log('ipfslink', ipfsLink)
                     //  if (signerAddr == String(patient))
                     //  {
-                    let contractEvent = {
+                    const contractEvent = {
                         block_height: String(item.block_height),
                         block_signed_at: String(item.block_signed_at),
                         tx_hash: String(item.tx_hash),
@@ -264,11 +238,11 @@ export default function CovalentTest() {
         )
         setDecodedEventPushDocument(arr)
         await countDocumentCreated()
-        console.log(arr)
+        //console.log(arr)
     }
     async function getDecodedRevokeAccess(d) {
-        let signerAddr = await getSignerAddress()
-        let arr = []
+        //const signerAddr = await getSignerAddress()
+        const arr = []
         d && d.data.items.map(
             (item) => {
                 let index = 0;
@@ -283,7 +257,7 @@ export default function CovalentTest() {
                     const decoded = utils.defaultAbiCoder.decode(['address'], item.raw_log_data)
                     //  if (signerAddr == String(patient))
                     //  {
-                    let contractEvent = {
+                    const contractEvent = {
                         block_height: String(item.block_height),
                         block_signed_at: String(item.block_signed_at),
                         tx_hash: String(item.tx_hash),
@@ -298,22 +272,22 @@ export default function CovalentTest() {
         )
         setDecodedEventRevokeAccess(arr)
         await countDoctorsThatReceivedDocRevokeByPatients()
-        console.log(arr)
+        //console.log(arr)
     }
     function handleSelectedEvent(e: any) {
-        console.log(e.target.value)
+        //console.log(e.target.value)
         setSelectedEvent(e.target.value)
     }
     async function countDoctorsThatReceivedDocAccessByPatients() {
-        let doctorList = [];
-        console.log(decodedEventGrantAccess)
-        decodedEventGrantAccess.map((item, i) => {
+        const doctorList = [];
+       // console.log(decodedEventGrantAccess)
+        decodedEventGrantAccess.map((item) => {
             // console.log()
             const check = doctorList.indexOf(item.doctor)
-            console.log(item.doctor, check)
+            //console.log(item.doctor, check)
             if (check < 1) { doctorList.push(item.doctor) }
         })
-        console.log(doctorList.length)
+       // console.log(doctorList.length)
         setGrantAccessDoctorsCounter(doctorList.length);
     }
     async function countDocumentCreated() {
@@ -322,16 +296,16 @@ export default function CovalentTest() {
 
     }
     async function countDoctorsThatReceivedDocRevokeByPatients() {
-        console.log(' countDoctorsThatReceivedDocRevokeByPatients')
-        let doctorList = [];
-        console.log(decodedEventGrantAccess)
-        decodedEventRevokeAccess.map((item, i) => {
+       // console.log(' countDoctorsThatReceivedDocRevokeByPatients')
+        const doctorList = [];
+       // console.log(decodedEventGrantAccess)
+        decodedEventRevokeAccess.map((item) => {
             // console.log()
             const check = doctorList.indexOf(item.doctor)
-            console.log(item.doctor, check)
+          //  console.log(item.doctor, check)
             if (check < 1) { doctorList.push(item.doctor) }
         })
-        console.log(doctorList.length)
+      //  console.log(doctorList.length)
         setRevokeAccessDoctorsCounter(doctorList.length);
     }
 

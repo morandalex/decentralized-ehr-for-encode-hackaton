@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from 'react'
 import Layout from '../components/layout/Layout'
 import { Button, Heading, Box, Text, Divider, HStack, Select } from '@chakra-ui/react'

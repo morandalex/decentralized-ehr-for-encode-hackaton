@@ -1,32 +1,33 @@
+// @ts-nocheck
 import React, { forwardRef, useEffect } from "react";
-import { CopyIcon } from "@chakra-ui/icons";
+//import { CopyIcon } from "@chakra-ui/icons";
 import {
-  Box,
+  //Box,
   Table,
   Thead,
   Tbody,
   Button,
-  Heading,
+  //Heading,
   Tr,
   Th,
   Td,
   TableCaption,
-  Spinner,
-  useToast,
+ // Spinner,
+//  useToast,
   Link,
-  useClipboard,
-  IconButton,
+ // useClipboard,
+ // IconButton,
 } from "@chakra-ui/react";
-const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY;
+//const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY;
 import Pagination from "@choc-ui/paginator";
 import { saveAs } from 'file-saver';
 const TablePaginated = ({ table, decrypt }) => {
-  const toast = useToast();
+//  const toast = useToast();
   const [data, setData] = React.useState(table);
-  const [loading, setLoading] = React.useState(true);
+//  const [loading, setLoading] = React.useState(true);
   const [current, setCurrent] = React.useState(1);
-  const [strToCopy, setStrToCopy] = React.useState("");
-  const { hasCopied, onCopy } = useClipboard(strToCopy);
+ // const [strToCopy, setStrToCopy] = React.useState("");
+  //const { hasCopied, onCopy } = useClipboard(strToCopy);
   const pageSize = 5;
   const offset = (current - 1) * pageSize;
   const rows = data.slice(offset, offset + pageSize);
@@ -36,11 +37,11 @@ const TablePaginated = ({ table, decrypt }) => {
     }
     init();
   }, [table]);
-  function copyStr(cid) {
+  /*function copyStr(cid) {
     console.log(cid);
     setStrToCopy(cid);
     onCopy();
-  }
+  }*/
   const Prev = forwardRef((props, ref) => (
     <Button
       //@ts-ignore
@@ -48,9 +49,10 @@ const TablePaginated = ({ table, decrypt }) => {
       Prev
     </Button>
   ));
+
   const Next = forwardRef((props, ref) => (
     <Button
-      //@ts-ignore
+     //@ts-ignore
       ref={ref} {...props}>
       Next
     </Button>
@@ -64,11 +66,12 @@ const TablePaginated = ({ table, decrypt }) => {
     }
   };
   function dataURLtoFile(dataurl, filename) {
-    var arr = dataurl.split(','),
-      mime = arr[0].match(/:(.*?);/)[1],
-      bstr = atob(arr[1]),
-      n = bstr.length,
-      u8arr = new Uint8Array(n);
+    const arr = dataurl.split(',')
+    const mime = arr[0].match(/:(.*?);/)[1]
+    const  bstr = atob(arr[1])
+    let  n = bstr.length
+    const  u8arr = new Uint8Array(n)
+
     while (n--) {
       u8arr[n] = bstr.charCodeAt(n);
     }
@@ -76,8 +79,8 @@ const TablePaginated = ({ table, decrypt }) => {
   }
   const downloadImage = async (link, encryptedSymmetricKey) => {
     const base64 = await decrypt(link, encryptedSymmetricKey);
-    var file = dataURLtoFile(base64, 'download')
-    console.log(file)
+    const file = dataURLtoFile(base64, 'download')
+    //console.log(file)
     saveAs(file)
     /* 
      const extension = base64.substring("data:image/".length, base64.indexOf(";base64"))
