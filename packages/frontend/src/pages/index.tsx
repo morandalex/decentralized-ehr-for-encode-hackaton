@@ -250,9 +250,10 @@ function SignatureExampleIndex(): JSX.Element {
                     <Heading as="h1" mb="12">
                         Decentralized electronic health record dapp
                     </Heading>
-                    <Text>Chain id not supported</Text>
-                    <Button onClick={switchMumbai }> change to mumbai</Button>
-                    <Button onClick={switchPolygon }> change to polygon</Button>
+
+                    <Text>Please connect</Text>
+
+                    
                     </Box>
                     </Layout>
         )
