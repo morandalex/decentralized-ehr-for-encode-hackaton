@@ -5,7 +5,7 @@ yarn compile
 
 #yarn deploy --network localhost
 #yarn deploy --network mumbai
-yarn deploy --network matic
+yarn deploy --network polygon
 
 
 rm  "./packages/frontend/src/lib/hardhat_contracts.json"

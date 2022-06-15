@@ -24,12 +24,11 @@ import { identity } from 'lodash'
 
 
 import ABIs from '../lib/hardhat_contracts.json'
-
 const networks = {
     "31337": "localhost",
     "80001": "mumbai",
     "137": "polygon"
-}
+  }
 
 
 function SignatureExampleIndex(): JSX.Element {
@@ -53,6 +52,7 @@ function SignatureExampleIndex(): JSX.Element {
         const test = checkChain () 
             if (test) {
                 setWeb3Available(true)
+
                 const abi = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].abi
                 const address = ABIs[chainId][networks[chainId]].contracts['ElectronicHealthLink'].address
 

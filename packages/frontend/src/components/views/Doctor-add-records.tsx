@@ -28,6 +28,7 @@ import {
   ModalBody,
   ModalCloseButton,
 } from "@chakra-ui/react";
+import { Spinner } from '@chakra-ui/react'
 import TablePaginated from "./TablePaginated";
 import { useEthers, Mumbai, Polygon } from '@usedapp/core'
 import { ethers, utils } from 'ethers'
@@ -51,6 +52,7 @@ const networks = {
   "80001": "mumbai",
   "137": "polygon"
 }
+
 
 export default function DoctorAdd() {
 
@@ -82,7 +84,7 @@ export default function DoctorAdd() {
 
   const [cond, setCond] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [chain, setChain] = useState('mumbai')
+  const [chain, setChain] = useState('')
   const [strEncrypted, setStrEncrypted] = useState('')
   const [contractAddress, setContractAddress] = useState('0x938a5Edb375DDe749616232f7f4F628D6610684c')
   const [strToBeEncrypt, setStrToBeEncrypt] = useState('This string will be encrypted by lit protocol')
@@ -129,6 +131,7 @@ export default function DoctorAdd() {
     }
     if (chainId && library) {
       initContract()
+      setLitSelectedChain(networks[chainId])
     }
 
 
@@ -277,6 +280,9 @@ export default function DoctorAdd() {
 
   const encrypt = async () => {
 
+setLoading(true)
+
+try{
 
 
     console.log('litSelectedChain', litSelectedChain)
@@ -371,14 +377,22 @@ export default function DoctorAdd() {
       metadata = await clientipfsnftstorage.storeBlob(blobToIpfs)
       console.log('finish loading on ipfs nft.storage ')
     }
-    catch (e) { console.log(e) }
+    catch (e) { console.log(e);setLoading(false) }
 
     console.log(metadata)
 
     setIpfsHash(metadata)
     //await pushDocumentFun()
     console.log(JSON.stringify(authSig))
+setLoading(false)
 
+
+
+  }
+  catch(e){
+console.log(e);
+    setLoading(false)
+  }
   }
   async function nftStorageFun(str) {
     var blobToIpfs = new Blob([str]);
@@ -505,7 +519,7 @@ export default function DoctorAdd() {
         </FormControl>
         <Box>
           <Button onClick={() => encrypt()}>Encrypt</Button>
-
+        {loading && <Spinner /> }
           <Button
             colorScheme="teal"
             disabled={!ipfsHash}

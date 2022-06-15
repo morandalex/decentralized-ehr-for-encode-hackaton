@@ -1,7 +1,7 @@
 {
   "137": {
-    "matic": {
-      "name": "matic",
+    "polygon": {
+      "name": "polygon",
       "chainId": "137",
       "contracts": {
         "ElectronicHealthLink": {

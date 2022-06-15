@@ -16,9 +16,9 @@ import { useApollo } from '../lib/apolloClient'
 export const INFURA_ID = '460f40a260564ac4a4f4b3fffb032dad'
 
 const config: Config = {
-  readOnlyUrls: {
+ /* readOnlyUrls: {
     31337: 'http://localhost:8545',
-  },
+  },*/
   /* multicallAddresses: {
      31337: '0x0000000000000000000000000000000000000000',
    //  ...MULTICALL_ADDRESSES,

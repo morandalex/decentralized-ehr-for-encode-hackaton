@@ -61,7 +61,7 @@ export default function WithSubnavigation() {
             textAlign={useBreakpointValue({ base: 'center', md: 'left' })}
             fontFamily={'heading'}
             color={useColorModeValue('gray.800', 'white')}>
-           <Link href= '/'> Home </Link>
+            <Link href='/'> Home </Link>
           </Text>
 
           <Flex display={{ base: 'none', md: 'flex' }} ml={10}>
@@ -79,34 +79,34 @@ export default function WithSubnavigation() {
             <ConnectWallet />
           )}
 
-         
+
 
 
           {
-                    //display={useBreakpointValue({ base: 'none', md: 'flex' })} 
-//display={useBreakpointValue({ base: 'none', md: 'flex' })}
-          account && (<>
-            <Text >{account.substr(0, 6)}...{account.substr(-4)}</Text>
-            <Text>{chainId}</Text>
+            //display={useBreakpointValue({ base: 'none', md: 'flex' })} 
+            //display={useBreakpointValue({ base: 'none', md: 'flex' })}
+            account && (<>
+              <Text >{account.substr(0, 6)}...{account.substr(-4)}</Text>
+              <Text>{chainId}</Text>
 
-            <Box
-        
-            >
-              <Button colorScheme="teal" variant="outline"
-                as={'a'}
-                fontSize={'sm'}
-                fontWeight={400}
+              <Box
 
-                href={'#'}
-                onClick={deactivate}
               >
+                <Button colorScheme="teal" variant="outline"
+                  as={'a'}
+                  fontSize={'sm'}
+                  fontWeight={400}
 
-                <b>  Sign out</b>
-              </Button>
+                  href={'#'}
+                  onClick={deactivate}
+                >
 
-            </Box>
-          </>
-          )}
+                  <b>  Sign out</b>
+                </Button>
+
+              </Box>
+            </>
+            )}
         </Stack>
       </Flex>
 
@@ -206,8 +206,8 @@ const MobileNav = () => {
       p={4}
       display={{ md: 'none' }}>
       {
-      //account && <Text display={useBreakpointValue({ sm: 'flex', base: 'none' })} >{account.substr(0, 6)}...{account.substr(-4)}</Text>
-    }
+        //account && <Text display={useBreakpointValue({ sm: 'flex', base: 'none' })} >{account.substr(0, 6)}...{account.substr(-4)}</Text>
+      }
       {
         //account && <Text display={useBreakpointValue({ sm: 'flex', md: 'none' })} >{chainId}</Text>
       }
@@ -277,6 +277,23 @@ interface NavItem {
 
 const NAV_ITEMS: Array<NavItem> = [
 
+
+
+  {
+    label: 'Patient ',
+    children: [
+      {
+        label: 'Set doctor access',
+        subLabel: 'set who can view documents',
+        href: '/patient',
+      },
+      {
+        label: 'Analytics',
+        subLabel: 'covalent data for the patient',
+        href: '/analytics-patient'
+      }
+    ]
+  },
   {
     label: 'Doctor',
     children: [
@@ -291,52 +308,36 @@ const NAV_ITEMS: Array<NavItem> = [
         href: '/doctor-view',
       },
       {
-        label:'Analytics',
-        subLabel:'covalent data for the doctor',
-        href:'/analytics-doctor'
+        label: 'Analytics',
+        subLabel: 'covalent data for the doctor',
+        href: '/analytics-doctor'
       }
     ],
   },
-
   {
-    label: 'Patient ',
-    children:[
-      {
-        label: 'Set doctor access',
-        subLabel: 'set who can view documents',
-        href: '/patient',
-      },
-      {
-        label:'Analytics',
-        subLabel:'covalent data for the patient',
-        href:'/analytics-patient'
-      }
-    ]
-  },
-{
-  label: 'Global Analytics',
-  href :'/analytics-all'
-}
-/*
-  {
-    label: 'Tests',
-    children: [
-      {
-        label: 'Lit protocol Tests',
-        subLabel: 'Working with string encryption',
-        href: '/test-lit-protocol',
-      },
-      {
-        label: 'Covalent Tests',
-        subLabel: 'getting data from covalent api',
-        href: '/test-covalent',
-      },
-      {
-        label: 'Doctor Analytics',
-        subLabel: 'doctor analytics using covalent api',
-        href: '/test-doctor-analytics',
-      }
-    ],
-  },
-*/
+    label: 'Global Analytics',
+    href: '/analytics-all'
+  }
+  /*
+    {
+      label: 'Tests',
+      children: [
+        {
+          label: 'Lit protocol Tests',
+          subLabel: 'Working with string encryption',
+          href: '/test-lit-protocol',
+        },
+        {
+          label: 'Covalent Tests',
+          subLabel: 'getting data from covalent api',
+          href: '/test-covalent',
+        },
+        {
+          label: 'Doctor Analytics',
+          subLabel: 'doctor analytics using covalent api',
+          href: '/test-doctor-analytics',
+        }
+      ],
+    },
+  */
 ];

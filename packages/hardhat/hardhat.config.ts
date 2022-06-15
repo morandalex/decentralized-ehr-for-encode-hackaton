@@ -107,7 +107,7 @@ const config: HardhatUserConfig = {
         mnemonic: getMnemonic(),
       },
     },
-    matic: {
+    polygon: {
       url: 'https://rpc-mainnet.maticvigil.com/',
       gasPrice: 100000000000,
       accounts:[polygonkey]

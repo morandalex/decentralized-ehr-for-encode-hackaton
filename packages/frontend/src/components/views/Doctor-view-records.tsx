@@ -48,7 +48,7 @@ const networks = {
     "31337": "localhost",
     "80001": "mumbai",
     "137": "polygon"
-}
+  }
 
 export default function DoctorView() {
 
@@ -137,6 +137,7 @@ export default function DoctorView() {
         }
         if (chainId && library) {
             initContract()
+            setLitSelectedChain(networks[chainId])
         }
 
 
@@ -193,7 +194,7 @@ export default function DoctorView() {
                     }
 
 
-                    alert(res)
+                    //alert(res)
                     return res
 
                 } catch (e: any) {

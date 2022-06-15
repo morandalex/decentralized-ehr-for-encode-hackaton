@@ -8,7 +8,8 @@ const networks = {
     "31337": "localhost",
     "80001": "mumbai",
     "137": "polygon"
-}
+  }
+
 export default function CovalentTest() {
     const [data, setData] = useState(null)
     const [decodedEventGrantAccess, setDecodedEventGrantAccess] = useState([])
@@ -17,9 +18,9 @@ export default function CovalentTest() {
     const [eventData, setEventData] = useState([])
     const [contractAddress, setContractAddress] = useState(null)
     const { library } = useEthers()
-    const [startingBlock, setStartingBlock] = useState('26639550')
+    const [startingBlock, setStartingBlock] = useState('0')
     const [endingBlock, setEndingBlock] = useState('latest')
-    const [latestBlock, setLatestBlock] = useState('')
+   
     const [selectedEvent, setSelectedEvent] = useState('')
     const [grantAccessDoctorsCounter, setGrantAccessDoctorsCounter] = useState(0)
     const [documentCreated, setDocumentCreated] = useState(0)
@@ -71,6 +72,7 @@ export default function CovalentTest() {
 
         }
         if (chainId && library) {
+            getLatestBlock()
             initContract()
         }
 
@@ -100,26 +102,23 @@ export default function CovalentTest() {
         }
 
     }
-    useEffect(() => {
 
-
-
-
-
-
-        getLatestBlock()
-    }, [])
 
 
     async function getLatestBlock() {
         const key = process.env.NEXT_PUBLIC_COVALENT_KEY
-        const result = await fetch('https://api.covalenthq.com/v1/80001/block_v2/latest/?quote-currency=USD&format=JSON&key=' + key)
+        const result = await fetch('https://api.covalenthq.com/v1/'+chainId+'/block_v2/latest/?quote-currency=USD&format=JSON&key=' + key)
             .then(res => res.json())
             .then(data => {
                 return data
             })
-        console.log(result.data.items[0].height)
-        setLatestBlock(result.data.items[0].height)
+        console.log(result)
+
+        const latest = result.data.items[0].height
+        setEndingBlock(latest)
+        setStartingBlock(String(parseInt(latest)-100000))
+        
+    
     }
     async function getSignerAddress() {
         const signer = library?.getSigner()
@@ -127,8 +126,8 @@ export default function CovalentTest() {
     }
     async function initEventData() {
         let arr = []
-        setContractAddress(ABIs[80001].mumbai.contracts.ElectronicHealthLink.address)
-        ABIs[80001].mumbai.contracts.ElectronicHealthLink.abi.map((item, i) => {
+        setContractAddress(ABIs[chainId][networks[chainId]].contracts.ElectronicHealthLink.address)
+        ABIs[chainId][networks[chainId]].contracts.ElectronicHealthLink.abi.map((item, i) => {
             if (item.type == 'event') {
                 let str = ''
                 item.inputs.map((jtem, j) => {
@@ -162,7 +161,7 @@ export default function CovalentTest() {
             const key = process.env.NEXT_PUBLIC_COVALENT_KEY
             //const startingBlock = '26639550'
             //const endingBlock = '26644057'
-            const apiReq = 'https://api.covalenthq.com/v1/80001/events/address/' + contractAddress + '/?starting-block=' + startingBlock + '&ending-block=' + endingBlock + '&key=' + key;
+            const apiReq = 'https://api.covalenthq.com/v1/'+chainId+'/events/address/' + contractAddress + '/?starting-block=' + startingBlock + '&ending-block=' + endingBlock + '&key=' + key;
             console.log(apiReq)
             const d = await fetch(apiReq)
                 .then(response => response.json())
@@ -346,7 +345,7 @@ export default function CovalentTest() {
 
                 >
                     <Heading as="h1">Global counters</Heading>
-                    <Text>Latest covalent block : {latestBlock}</Text>
+                    <Text>From starting block  {startingBlock} to ending block {endingBlock}</Text>
                     <HStack m='3' p='1'>
                         <Select onChange={handleSelectedEvent} placeholder='Select option'>
                             {

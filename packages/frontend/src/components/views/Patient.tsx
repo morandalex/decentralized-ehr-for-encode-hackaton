@@ -19,6 +19,7 @@ import {
   FormHelperText,
   Select,
 } from "@chakra-ui/react";
+import { Spinner } from '@chakra-ui/react'
 import TablePaginated from "./TablePaginated";
 import MultiSelectMenu from '../multiple-select'
 import { useEthers, Mumbai, Polygon } from '@usedapp/core'
@@ -39,7 +40,7 @@ export default function Patient() {
 
 
   const [accessCheck, setAccessCheck] = useState(false);
-  const [selectedDocType, setSelectedDocType] = useState("1");
+  const [selectedDocType, setSelectedDocType] = useState(['1']);
   const [doctorAddressInput, setDoctorAddressInput] = useState("");
   const [startingTime, setStartingTime] = useState("0");
   const [endingTime, setEndingTime] = useState("300000000");
@@ -102,6 +103,7 @@ export default function Patient() {
     }
     if (chainId && library) {
       initContract()
+      setLitSelectedChain(networks[chainId])
     }
 
 
