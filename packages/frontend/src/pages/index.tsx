@@ -209,6 +209,7 @@ function SignatureExampleIndex(): JSX.Element {
                     </Heading>
 
                     <HStack m='2'>
+                        Check in the console : {' '}
                         <Button mx='1' onClick={() => console.log(contractAbi)}>contractAbi</Button>
                         <Button mx='1' onClick={() => console.log(contractAddress)}>contractAddress</Button>
 
@@ -224,7 +225,7 @@ function SignatureExampleIndex(): JSX.Element {
 
                     {contractAbi.map((item) => {
 
-                        return <Text key={item.name}>{item.name}</Text>
+                        return <Text key={item.name}>{item.type+' : '+item.name}</Text>
                     })
 
                     }
